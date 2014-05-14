@@ -1,0 +1,108 @@
+<!doctype html>
+<html>
+  <head>
+    <title>Watch Next Extension's Popup</title>
+    <style>
+      body {
+        min-width: 380px;
+        margin: 5px;
+        overflow-x: hidden;
+        font-family: arial,sans-serif;
+      }
+
+      .playlist-item {
+        height: 68px;
+        overflow: hidden;
+        margin-top: 15px;
+      }
+
+      .playlist-item:last-of-type{
+        margin-bottom: 15px;
+      }
+
+      .thumbnail-container{
+        margin: 0 8px 0 0;
+        float: left;
+        width: 120px;
+      }
+
+      .thumbnail-container img{
+        position: relative;
+        top: -11px;
+      }
+
+      .duration{
+        padding: 0 4px;
+        font-weight: bold;
+        font-size: 11px;
+        background-color: #000;
+        color: #fff!important;
+        height: 14px;
+        line-height: 14px;
+        opacity: .75;
+        filter: alpha(opacity=75);
+        display: -moz-inline-stack;
+        vertical-align: top;
+        zoom: 1;
+        display: inline-block;
+        border-radius: 3px;
+        position: relative;
+        right: -88px;
+        bottom: 45px;
+      }
+
+      .info-container span{
+        display: block;
+        margin: 0;
+        padding: 0;
+        border: 0;
+        background: transparent;
+      }
+
+      .title{
+        color: #333;
+        font-size: 13px;
+        font-weight: bold;
+      }
+
+      .author,.views{
+        color: #999;
+        font-size: 11px;
+        line-height: 1.4em;
+        height: 1.4em;
+        white-space: nowrap;
+      }
+
+      .controls{
+        position: relative;
+        right: -208px;
+        bottom: 20px;
+      }
+
+      .controls img{
+        width:20px;
+        height:20px;
+        cursor: pointer;
+        opacity: .25;
+      }
+
+      .info-container:hover .controls img{
+        opacity: 1;
+      }
+
+      .clearfix{
+        float: clear;
+      }
+    </style>
+    <script src="jquery.js"></script>
+    <script src="popup.js"></script>
+  </head>
+  <body>
+    <label>
+      <input type="checkbox" id="watchNextEnabled" />
+      Use Watch Next Playlist
+    </label>
+    <div id="watchNext"></div>
+  </body>
+</html>
+
