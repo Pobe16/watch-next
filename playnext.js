@@ -1,58 +1,40 @@
-var html5VideoPlayer = document.getElementsByTagName('video')[0];
-var m_ytplayer = null;
+"use strict";
+//localstorage initialisation again
 if (!localStorage.hasOwnProperty("watchNextPlaylist")){
   localStorage.watchNextPlaylist = "[]";
-};
+}
 
-loadNext = function(id){
-	chrome.runtime.sendMessage({whatToDo: "videoWatched"}, function(response){});
-	document.location.href = "https://www.youtube.com/watch?v="+id+"&feature=watchnext";
-};
-
-getNextVideo = function(){
-	chrome.runtime.sendMessage({whatToDo: "getNextVideoId"}, function(response) {
+var controls = {
+	//deletes the first item from playlist and loads it in the active youtube tab
+	loadNext: function(id){
+		chrome.runtime.sendMessage({whatToDo: "videoWatched"}, function(){});
+		document.location.href = "https://www.youtube.com/watch?v="+id+"&feature=watchnext";
+	},
+	//asks background.js for the id of next video, then proceeds to load it
+	getNextVideo: function(){
+		chrome.runtime.sendMessage({whatToDo: "getNextVideoId"}, function(response) {
 			if (response.videoId) {
-				loadNext(response.videoId);
-			};
-	});
+				controls.loadNext(response.videoId);
+
+			}
+		});
+	}
 };
 
-addVideoToPlaylist = function(id){
-	chrome.runtime.sendMessage({whatToDo: "addVideoToPlaylist", videoId: id}, function(response) {});
-};
-
-if (html5VideoPlayer) {
-	html5VideoPlayer.onended = function() {
-		getNextVideo();
-	};
-};
-
-createWatchNextButton = function(id){
-	var styleButton = "right:26px;width:22px;height:22px;padding:0;border-radius:2px;";
-	var tempButton = '\
-	<button class="addto-button video-actions spf-nolink hide-until-delayloaded addto-watch-next-button yt-uix-button yt-uix-button-default yt-uix-button-size-small yt-uix-tooltip" \
-	title="Watch Next" \
-	type="button" \
-	onclick=";return false;" \
-	style="'+styleButton+'" \
-	data-video-ids="'+id+'" \
-	role="button">\
-		<span class="yt-uix-button-content">\
-			<img src="'+chrome.extension.getURL('icon16.png')+'" alt="Watch Next">\
- 		</span>\
- 	</button>';
- 	return tempButton;
-};
-
-//if the player is not html5, here is how we handle it:
-
-function getPlayerObject() {
-	m_ytplayer = document.getElementById("movie_player");
-	return m_ytplayer;
-};
-
-function executePageScript(fn, params) {
-		
+//Don't use flash, it is a pain to write for it and it makes me sad. 
+//YouTube player on official page have absolutely no apis :-(
+//this is a workaround I found in one of the "replay youtube videos"
+//chrome extensions. I adjusted it for my use, but it's still enormous,
+//and somewhat gibberish for me :-(
+//If the player is not html5, here is how we handle it:
+var m_ytplayer = null;
+var flash ={
+	getPlayerObject: function(){
+		var ytplayer = document.getElementById("movie_player");
+		return ytplayer;
+	},
+	
+	executePageScript: function(fn, params){
 	   // returned value container
 	   var val = document.createElement("div");
 	   val.id = "" + Math.floor((Math.random() * 100) + 1) + ((new Date()).getTime());
@@ -61,7 +43,7 @@ function executePageScript(fn, params) {
 	   
 	   var script = document.createElement('script');
 	   script.setAttribute("type", "application/javascript");
-	   script.textContent = ((params != null) ? ('var params = ' + JSON.stringify(params) + ';') : "") + 
+	   script.textContent = ((params !== null) ? ('var params = ' + JSON.stringify(params) + ';') : "") + 
 							'document.getElementById("' + val.id + '").innerHTML=(' + fn + ')();';
 	   document.documentElement.appendChild(script); // run the script
 	   var returnedVal = document.getElementById(val.id).innerHTML;
@@ -69,54 +51,51 @@ function executePageScript(fn, params) {
 	   document.body.removeChild(val); 
 	   
 	   return returnedVal;
-	}
+	},
 
-function runPlayerCmd(cmdName, params) {
-	if (!params) {
-		params = {};
-	}
-	params.ytplayerName = m_ytplayer.id;
-	params.cmdName = cmdName;
-	var val = executePageScript(function(){
-		var ytPlayerObj = document.getElementById(params.ytplayerName);
-		if ((ytPlayerObj != null) && (ytPlayerObj[params.cmdName] != null)) {
-			return ytPlayerObj[params.cmdName]();
+	runPlayerCmd: function(cmdName, params){
+		if (!params) {
+			params = {};
 		}
-		return null;
-	}, params);
-	return val;
-}
+		params.ytplayerName = m_ytplayer.id;
+		params.cmdName = cmdName;
+		var val = flash.executePageScript(function(){
+			var ytPlayerObj = document.getElementById(params.ytplayerName);
+			if ((ytPlayerObj !== null) && (ytPlayerObj[params.cmdName] !== null)) {
+				return ytPlayerObj[params.cmdName]();
+			}
+			return null;
+		}, params);
+		return val;
+	},
 
-function getPlayerState() {
-	return parseInt(runPlayerCmd("getPlayerState"));
-};
+	getPlayerState: function(){
+		return parseInt(flash.runPlayerCmd("getPlayerState"));
+	},
 
-function flashVideoState(){
-	if (getPlayerState() == 0){
-		getNextVideo();
-	} else if (getPlayerState() == 1){
-		window.setTimeout(function(){flashVideoState();}, 5000)
-	} else {
-		window.setTimeout(function(){flashVideoState();}, 5000);
-	}
+	videoState: function(){
+		if (flash.getPlayerState() === 0){
+			controls.getNextVideo();
+		} else {
+			window.setTimeout(function(){flash.videoState();}, 5000);
+		}
+	},
+
 };
 
 $(document).ready(function(){
-	var buttonClass = ".addto-watch-later-button";
-	$(buttonClass).each(function(index, element) {
-		var tempVideoId = $(this).attr("data-video-ids");
-		var watchNextButton = createWatchNextButton(tempVideoId);
-		$(this).before(watchNextButton);
-	});
-	$(".addto-watch-next-button").click(function() {
-		var videoId = $(this).attr("data-video-ids");
-		addVideoToPlaylist(videoId);
-		//return false;
-	});
+	//attempt to identify the html5 video player	
+	var html5VideoPlayer = document.getElementsByTagName("video")[0];
 
-	if (!html5VideoPlayer){
-		m_ytplayer = getPlayerObject();
-		console.log("no html5")
-		window.setTimeout(function(){flashVideoState();}, 5000);
-	};
+	if (html5VideoPlayer) {
+		//if succeeded, bind the watch next playlist to end of video
+		html5VideoPlayer.onended = function() {
+			controls.getNextVideo();
+		};
+	} else {
+		//if not, find the flash player
+		m_ytplayer = flash.getPlayerObject();
+		//and start observing periodically (5s) for the video end
+		window.setTimeout(function(){flash.videoState();}, 5000);
+	}
 });
