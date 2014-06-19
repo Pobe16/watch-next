@@ -6,3 +6,9 @@ Ever saw a couple of YouTube video and wanted to watch them just right after the
 You can add a video to Watch Next playlist from YouTube related videos (button on the thumbnail), or just from any link to YouTube (right-click menu).
 
 Have fun making playlist!
+
+Changes in version 1.1:
+- Watch Next icon is now displayed on every thumbnail on YouTube,
+- Fixed time display in playlist view for videos over 10 minutes long,
+- Title display in playlist view now show only one line of text,
+- Code is a bit clearer and supposedly faster
