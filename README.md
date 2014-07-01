@@ -7,6 +7,13 @@ You can add a video to Watch Next playlist from YouTube related videos (button o
 
 Have fun making playlist!
 
+Icons by Alexander Moore
+
+Changes in version 1.2:
+- Thumbnail icon now changes to blue to confirm adding video to playlist
+- A lot of code fixes
+- Finally without jQuery
+
 Changes in version 1.1:
 - Watch Next icon is now displayed on every thumbnail on YouTube,
 - Fixed time display in playlist view for videos over 10 minutes long,

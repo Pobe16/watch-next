@@ -4,7 +4,7 @@
 	"name": "Watch Next: YouTube",
 	"short_name": "Watch Next",
 	"description": "This extensions lets you tell YouTube which video you want to watch next.",
-	"version": "1.1",
+	"version": "1.2",
 
 	"permissions": [
 		"https://youtube.com/",
@@ -14,29 +14,38 @@
 
 	"background": {
 		"persistent": false,
-		"scripts": ["background.js"]
+		"scripts": ["scripts/config.js","scripts/background.js"]
 	},
 
 	"browser_action": {
-		"default_icon": "icon32.png",
+		"default_icon": "icons/icon32.png",
 		"default_popup": "popup.html"
 	},
 
 	"icons": { 
-		"16": "icon16.png",
-		"128": "icon128.png" 
+		"16": "icons/icon16.png",
+		"128": "icons/icon128.png" 
 	},
 
 	"content_scripts": [
 		{
-			"matches": ["https://www.youtube.com/*", "http://www.youtube.com/*"],
-			"js": ["jquery.js", "playnextbutton.js"]
+			"matches": ["*://*.youtube.com/*" , "*://youtube.com/*"],
+			"js": ["scripts/config.js", "scripts/playnextbutton.js"]
 		},
 		{
-			"matches": ["https://www.youtube.com/watch?v=*", "http://www.youtube.com/watch?v=*"],
-			"js": ["jquery.js", "playnext.js"]
+			"matches": ["*://*.youtube.com/watch?v=*" , "*://youtube.com/*"],
+			//it is disabled by default for youtube playlist - simply not to interfere
+			"exclude_matches": ["*://*/watch*list=*"],
+			"js": ["scripts/config.js", "scripts/playnext.js"]
 		}
 	],
-
-	"web_accessible_resources": ["icon16.png"]
+	// some icons by Alexander Moore
+	"web_accessible_resources": [
+		"icons/icon_add_16.png",
+		"icons/icon_delete_32.png",
+		"icons/icon_disabled_32.png",
+		"icons/icon_done_16.png",
+		"icons/icon16.png",
+		"icons/icon32.png"
+	]
 }
