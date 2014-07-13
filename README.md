@@ -9,13 +9,21 @@ Have fun making playlist!
 
 Icons by Alexander Moore
 
-Changes in version 1.2:
-- Thumbnail icon now changes to blue to confirm adding video to playlist
-- A lot of code fixes
-- Finally without jQuery
+Changes in version 1.3.2:
 
-Changes in version 1.1:
+- Playlist items counter on the extension icon
+* fixed bug not displaying hours in duration when there was more than 9 minutes
+* fixed typo reenabling the popup window
+
+Changes in version 1.2.1:
+
+- Thumbnail icon now changes to blue to confirm adding video to playlist
+- New icon for deleting videos from playlist
+- Minified version - finally without jQuery
+* A lot of code fixes
+
+Changes in version 1.1.0:
 - Watch Next icon is now displayed on every thumbnail on YouTube,
-- Fixed time display in playlist view for videos over 10 minutes long,
 - Title display in playlist view now show only one line of text,
-- Code is a bit clearer and supposedly faster
+* Fixed time display in playlist view for videos over 10 minutes long,
+* Code is a bit clearer and supposedly faster
