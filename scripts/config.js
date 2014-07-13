@@ -1,6 +1,6 @@
 'use strict';
 var conFig = {
-	youTubeApiKey : 'AIzaSyDi8Av-iwAge3d_n3NayTZH1dvcXU-ms-I',
+	youTubeApiKey : 'nope',
 	
 	contextMenu : {
 		"title": "Watch Next",
