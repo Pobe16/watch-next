@@ -17,8 +17,7 @@ var m_ytplayer = null,
 	*/
 	flash ={
 		getPlayerObject: function(){
-			var ytplayer = document.getElementById('movie_player');
-			return ytplayer;
+			return document.getElementById('movie_player');
 		},
 		
 		executePageScript: function(fn, params){

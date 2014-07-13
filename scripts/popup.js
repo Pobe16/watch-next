@@ -2,7 +2,6 @@
 
 (function(){
 
-//variable used later to store the information needed for visual playlist
 var playlist={
 	videosArray: [],
 	videosLength: 0,
@@ -19,17 +18,14 @@ var playlist={
 		}
 	},
 
-	//change extension icon
-	changeIcon: function(){
+	//enable or disable extension
+	enableDisable: function(){
 		if (this.checkbox.checked){
-			localStorage.watchNext='true';
-			//green arrow
-			chrome.browserAction.setIcon({path: 'icons/icon32.png'});
+			localStorage.setItem('watchNext', 'true');
 		}else{
-			localStorage.watchNext='false';
-			//red cross
-			chrome.browserAction.setIcon({path: 'icons/icon32_disabled.png'});
+			localStorage.setItem('watchNext', 'false');
 		}
+		conFig.setIcon();
 	},
 
 	/*
@@ -127,9 +123,11 @@ var playlist={
 								24 * 7 * 4 * period.M + 
 								24 * 7 * 4 * 12 * period.Y;
 		
-		if (time.H && time.M < 10) {
-			time.M = '0' + time.M;
+		if (time.H) {
 			duration = time.H + ':';
+			if (time.M < 10) {
+				time.M = '0' + time.M;
+			}
 		}
 
 		if (time.S < 10) {
@@ -292,7 +290,7 @@ document.addEventListener('DOMContentLoaded', function(){
 
 	//changing extension icon according to the checkbox
 	playlist.checkbox.addEventListener('click', function(){
-		playlist.changeIcon();
+		playlist.enableDisable();
 	});
 
 	//starting the generate process

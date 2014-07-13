@@ -4,10 +4,10 @@
 var watchNext = {
 	localStorageService: function (whatToDo, value) {
 		//get the playlist from local storage, changing the string to array
-		if (whatToDo == 'get') {
+		if (whatToDo === 'get') {
 			return JSON.parse(localStorage.getItem('watchNextPlaylist'));
 		//set the playlist to new value, changing array to string			
-		} else if (whatToDo == 'set') {
+		} else if (whatToDo === 'set') {
 			var setValue = JSON.stringify(value);
 			localStorage.setItem('watchNextPlaylist', setValue);
 		}
@@ -19,7 +19,7 @@ var watchNext = {
 	youtubeParser: function(url){
 		var regExp = /.*(?:youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=)([^#\&\?]*).*/,
 			match = url.match(regExp);
-		if (match&&match[1].length==11){
+		if (match && match[1].length === 11){
 			return match[1];
 		} else {
 			return false;
@@ -34,6 +34,7 @@ var watchNext = {
 		if (!(tempPlaylist[tempPlaylist.length-1]===storeThat)) {
 			tempPlaylist.push(storeThat);
 			this.localStorageService('set', tempPlaylist);
+			conFig.setIcon();
 		} 	
 	},
 
@@ -64,6 +65,7 @@ var watchNext = {
 		var tempPlaylist = this.localStorageService('get');
 		tempPlaylist.splice(id,1);
 		this.localStorageService('set', tempPlaylist);
+		conFig.setIcon();
 	},
 	//on click of context menu item
 	contextMenuClick: function(info){
@@ -75,7 +77,7 @@ var watchNext = {
 chrome.runtime.onMessage.addListener(
 	function(request, sender, sendResponse) {
 		//determine the next video in playlist
-		if (request.whatToDo == 'getNextVideoId') {
+		if (request.whatToDo === 'getNextVideoId') {
 			var toSend = watchNext.localStorageService('get'),
 				extensionDisabled = !JSON.parse(localStorage.watchNext);
 			//send the next video id, or false if the playlist is empty or extension is turned off
@@ -86,17 +88,17 @@ chrome.runtime.onMessage.addListener(
 			}
 		}
 		//message received on start of the new video to delete the first entry from playlist
-		if (request.whatToDo == 'videoWatched'){
+		if (request.whatToDo === 'videoWatched'){
 			watchNext.deleteFromPlaylist(0);
 		}
 		//with youtube-local links we are getting just ids, so we have to add a shortcut template to not confuse the youtubeParser method
-		if (request.whatToDo == 'addVideoToPlaylist'){
+		if (request.whatToDo === 'addVideoToPlaylist'){
 			var video = 'http://youtu.be/' + request.videoId;
 			watchNext.checkLink(video);
 			sendResponse({added: true});
 		}
 		//delete any video from list
-		if (request.whatToDo == 'deleteVideo'){
+		if (request.whatToDo === 'deleteVideo'){
 			watchNext.deleteFromPlaylist(request.videoId);
 			//a response needed for popup.js window reload
 			sendResponse({videoId: false});
@@ -110,5 +112,7 @@ chrome.runtime.onInstalled.addListener(function() {
 	//context menu config
 	chrome.contextMenus.create(conFig.contextMenu);
 });
+
+conFig.setIcon();
 
 }());
