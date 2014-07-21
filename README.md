@@ -9,6 +9,11 @@ Have fun making playlist!
 
 Icons by Alexander Moore
 
+Changes in version 1.4.0:
+- Watch Next button now shows on thumbnails loaded automatically when you scroll to the bottom of the page or with "Load more" button,
+* fixed the context menu,
+* fixed the icon not changing color when it's 0 items in playlist
+
 Changes in version 1.3.2:
 
 - Playlist items counter on the extension icon
