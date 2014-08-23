@@ -4,6 +4,11 @@ body {
 	overflow-x: hidden;
 	font-family: arial,sans-serif;
 }
+
+.watchNext {
+	max-height: 500px;
+	overflow: auto;
+}
 	
 .playlistItem {
 	height: 68px;
@@ -81,6 +86,10 @@ body {
 
 .infoContainer:hover .controls img{
 	opacity: 1;
+}
+
+.playlistDuration {
+	text-align: center;
 }
 
 .clearfix{

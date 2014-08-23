@@ -8,6 +8,8 @@ var playlist={
 	checkbox: {},
 	parentDiv: {},
 	playlistInfo: [],
+	//duration in seconds
+	playlistDuration: 0,
 
 	//store the playlist info in local variables, then start processing them
 	getVideos: function(){
@@ -119,10 +121,13 @@ var playlist={
 		period = d.period.variables;
 		time = d.time.variables;
 		time.H += 	24 * period.D + 
-								24 * 7 * period.W +
-								24 * 7 * 4 * period.M + 
-								24 * 7 * 4 * 12 * period.Y;
+					24 * 7 * period.W +
+					24 * 7 * 4 * period.M + 
+					24 * 7 * 4 * 12 * period.Y;
 		
+		this.playlistDuration+= parseInt(time.H) * 60 * 60 + 
+								parseInt(time.M) * 60 +
+								parseInt(time.S);
 		if (time.H) {
 			duration = time.H + ':';
 			if (time.M < 10) {
@@ -130,11 +135,13 @@ var playlist={
 			}
 		}
 
+
 		if (time.S < 10) {
 			time.S = '0' + time.S;
 		}
 
 		duration += time.M + ':' + time.S;
+
 		return duration;
 	},
 
@@ -181,6 +188,7 @@ var playlist={
 		because of asynchronic nature of XMLHttpRequest
 		*/
 		this.buttonsShouldDoSomething();
+		this.setDuration();
 	},
 
 	//creating a div template and appending to the popup page
@@ -275,6 +283,32 @@ var playlist={
 			});
 		});
 	},
+	setDuration: function(){
+		if (this.playlistDuration) {
+			var node = document.getElementById('duration'),
+				seconds = this.playlistDuration % 60,
+				minutes = ((this.playlistDuration - seconds) % 3600) / 60,
+				hours = (this.playlistDuration - seconds - 60 * minutes) / 3600,
+				durationText = '';
+			console.log(this.playlistDuration);
+			if (hours) {
+				durationText = hours + ':';
+				if (minutes < 10) {
+					minutes = '0' + minutes;
+				}
+			}
+
+			if (seconds < 10) {
+				seconds = '0' + seconds;
+			}
+
+			durationText += minutes + ':' + seconds;
+
+			node.innerHTML = 'Playlist time: ' + durationText;	
+		}
+		
+
+	},
 };
 
 document.addEventListener('DOMContentLoaded', function(){
@@ -294,7 +328,7 @@ document.addEventListener('DOMContentLoaded', function(){
 	});
 
 	//starting the generate process
-	playlist.getVideos();	
+	playlist.getVideos();
 });
 
 }());

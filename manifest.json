@@ -4,7 +4,7 @@
 	"name": "Watch Next: YouTube",
 	"short_name": "Watch Next",
 	"description": "This extensions lets you tell YouTube which video you want to watch next.",
-	"version": "1.4.0",
+	"version": "1.5.0",
 
 	"permissions": [
 		"https://youtube.com/",
