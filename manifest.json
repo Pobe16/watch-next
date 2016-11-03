@@ -3,13 +3,14 @@
 
 	"name": "Watch Next: YouTube",
 	"short_name": "Watch Next",
-	"description": "This extensions lets you tell YouTube which video you want to watch next.",
-	"version": "1.5.0",
+	"description": "Watch Next lets you tell YouTube which video you want to watch after this one.",
+	"version": "1.6.1",
 
 	"permissions": [
 		"https://youtube.com/",
 		"tabs",
-		"contextMenus"
+		"contextMenus",
+		"storage"
 	],
 
 	"background": {
@@ -24,12 +25,15 @@
 
 	"icons": { 
 		"16": "icons/icon16.png",
+		"32": "icons/icon32.png",
+		"64": "icons/icon64.png",
 		"128": "icons/icon128.png" 
 	},
 
 	"content_scripts": [
 		{
 			"matches": ["*://*.youtube.com/*" , "*://youtube.com/*"],
+			"css": ["playnextbutton.css"],
 			"js": ["scripts/config.js", "scripts/playnextbutton.js"]
 		},
 		{
@@ -41,10 +45,12 @@
 
 	"web_accessible_resources": [
 	"icons/icon_add_16.png", 
+	"icons/icon_add_32.png", 
 	"icons/icon_delete_32.png", 
 	"icons/icon_disabled_32.png", 
 	"icons/icon_done_16.png", 
 	"icons/icon16.png", 
-	"icons/icon32.png"
+	"icons/icon32.png",
+	"icons/icon_info.png"
 	]
 }

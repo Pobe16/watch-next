@@ -2,6 +2,11 @@
 (function(){
 
 var watchNext = {
+	/*
+	I am expanding the localStorage usage with archive, and possibly library,
+	so this function will probably be obsolete soon...
+	*/
+	/*
 	localStorageService: function (whatToDo, value) {
 		//get the playlist from local storage, changing the string to array
 		if (whatToDo === 'get') {
@@ -12,6 +17,8 @@ var watchNext = {
 			localStorage.setItem('watchNextPlaylist', setValue);
 		}
 	},
+	*/
+
 	/*
 	isolate the youtube video id from the address, regex from stackoverflow
 	http://stackoverflow.com/questions/3452546/javascript-regex-how-to-get-youtube-video-id-from-url
@@ -27,13 +34,13 @@ var watchNext = {
 	},
 
 	addVideoToPlaylist: function(storeThat) {
-		var tempPlaylist = this.localStorageService('get');
+		var tempPlaylist = JSON.parse(localStorage.getItem('watchNextPlaylist'));
 		//checking if the localStorage is active
 		conFig.startLS();
 		//in case of double-, triple-click etc. the item will be added just once
 		if (!(tempPlaylist[tempPlaylist.length-1]===storeThat)) {
 			tempPlaylist.push(storeThat);
-			this.localStorageService('set', tempPlaylist);
+			localStorage.setItem('watchNextPlaylist', JSON.stringify(tempPlaylist));
 			conFig.setIcon();
 		} 	
 	},
@@ -61,10 +68,22 @@ var watchNext = {
 		}
 	},
 	//removes the video id from local storage
-	deleteFromPlaylist: function(id){
-		var tempPlaylist = this.localStorageService('get');
+	deleteFromPlaylist: function(id, archive){
+		var tempPlaylist = JSON.parse(localStorage.getItem('watchNextPlaylist')),
+			tempArchive = JSON.parse(localStorage.getItem('watchNextArchive'));
+
+		if (archive){
+			tempArchive.unshift(tempPlaylist[id]);
+			//removes the library entry about the movie we are about to delete from library
+			if (tempArchive.length > 3) {
+				chrome.storage.local.remove(tempArchive[3]);
+				tempArchive.splice(3);				
+			}
+			localStorage.setItem('watchNextArchive', JSON.stringify(tempArchive));
+		}
+		chrome.storage.local.remove(tempPlaylist[id]);
 		tempPlaylist.splice(id,1);
-		this.localStorageService('set', tempPlaylist);
+		localStorage.setItem('watchNextPlaylist', JSON.stringify(tempPlaylist));
 		conFig.setIcon();
 	},
 	//on click of context menu item
@@ -78,7 +97,7 @@ chrome.runtime.onMessage.addListener(
 	function(request, sender, sendResponse) {
 		//determine the next video in playlist
 		if (request.whatToDo === 'getNextVideoId') {
-			var toSend = watchNext.localStorageService('get'),
+			var toSend = JSON.parse(localStorage.watchNextPlaylist),
 				extensionDisabled = !JSON.parse(localStorage.watchNext);
 			//send the next video id, or false if the playlist is empty or extension is turned off
 			if (toSend.length === 0 || extensionDisabled) {
@@ -87,21 +106,21 @@ chrome.runtime.onMessage.addListener(
 				sendResponse({videoId: toSend[0]});
 			}
 		}
-		//message received on start of the new video to delete the first entry from playlist
-		if (request.whatToDo === 'videoWatched'){
-			watchNext.deleteFromPlaylist(0);
+		//delete any video from list, if the delete button was used, do not archive it
+		if (request.whatToDo === 'videoWatched' || request.whatToDo === 'deleteVideo'){
+			var archive = true;
+			if (request.whatToDo === 'deleteVideo') {
+				archive = false;
+			}
+			watchNext.deleteFromPlaylist(request.videoId, archive);
+			//a response needed for popup.js window reload
+			sendResponse({videoId: false});
 		}
 		//with youtube-local links we are getting just ids, so we have to add a shortcut template to not confuse the youtubeParser method
 		if (request.whatToDo === 'addVideoToPlaylist'){
 			var video = 'http://youtu.be/' + request.videoId;
 			watchNext.checkLink(video);
 			sendResponse({added: true});
-		}
-		//delete any video from list
-		if (request.whatToDo === 'deleteVideo'){
-			watchNext.deleteFromPlaylist(request.videoId);
-			//a response needed for popup.js window reload
-			sendResponse({videoId: false});
 		}
 		return true;
 });

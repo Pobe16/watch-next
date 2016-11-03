@@ -1,0 +1,19 @@
+.video-list-item:hover .thumb-wrapper .addto-watch-next-button{
+	right: -120px;
+}
+
+.contains-addto:hover .video-actions.addto-watch-next-button, .ux-thumb-wrap:hover .video-actions.addto-watch-next-button, a:hover .video-actions.addto-watch-next-button, .addto-watch-next-button.video-actions.yt-uix-button-active{
+	right: 26px;
+}
+
+.addto-watch-next-button{
+	position: relative;
+	display: block;
+	height: 22px;
+	width: 22px;
+	right: 26px;
+	bottom: 24px;
+	border-radius: 2px;
+	cursor: pointer;
+}
+

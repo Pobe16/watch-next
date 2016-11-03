@@ -65,10 +65,28 @@ var m_ytplayer = null,
 			}
 		},
 	},
+
 	controls = {
+		/*
+		determines if the youtube player is in video end mode
+		I am pretty sure that youtube sometimes plays ads after the movie - in this case
+		this script will wait for the end of an ad. Needs testing with ad after movie to find
+		correct class names
+		*/
+		adOrMovie: function(){
+			var movieEnded = 0;
+			if (html5VideoPlayer.parentNode.parentNode.classList.contains('ended-mode')) {
+				movieEnded = 1;
+			}
+
+			if (movieEnded) {
+				controls.getNextVideo();
+			}
+		},
+
 		//deletes the first item from playlist and loads it in the active youtube tab
 		loadNext: function(id){
-			chrome.runtime.sendMessage({whatToDo: 'videoWatched'}, function(){});
+			chrome.runtime.sendMessage({whatToDo: 'videoWatched', videoId: 0}, function(){});
 			document.location.href = 'https://www.youtube.com/watch?v='+id+'&feature=watchnext';
 		},
 		/*
@@ -90,9 +108,16 @@ I wanted to put an event listener for DOMContentLoaded, but Chrome starts
 content scripts after that event.
 */
 if (html5VideoPlayer) {
-	//if there is HTML5 video, bind the watch next playlist to end of it
+	//if there is HTML5 video, start our script when it ends
 	html5VideoPlayer.onended = function() {
-		controls.getNextVideo();
+		/*
+		When the full ad play with the video (when user is not allowed to click "skip ad",
+		or he/she choses to watch the whole film), the onended function will be called twice
+		first when the ad ends, and second time when the movie end. That's why the script
+		wait 200 ms and then tries to determine if user just finished watching ad or movie.
+		Needs testing on slower broadbands to see if 200 ms is enough.
+		*/
+		window.setTimeout(function(){controls.adOrMovie();}, 200);
 	};
 } else {
 	//if not, find the flash player

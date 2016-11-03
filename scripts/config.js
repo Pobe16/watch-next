@@ -47,6 +47,10 @@ var conFig = {
 		if (!localStorage.hasOwnProperty('watchNext')){
 			localStorage.watchNext = 'true';
 		}
+		if (!localStorage.hasOwnProperty('watchNextArchive')){
+			localStorage.watchNextArchive = '[]';
+		}
+		
 	},
 
 	//shortcut for the normalization of array-like elements

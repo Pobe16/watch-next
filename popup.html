@@ -9,12 +9,18 @@
 	</head>
 	<body>
 		<div class="playlistControl">
-			<label class="switch">
-				<input type="checkbox" id="watchNextEnabled" />
-				Use Watch Next Playlist
-			</label>
+			<div class="autoplay">
+					<label class="switch">
+						<input type="checkbox" id="watchNextEnabled" />
+						Autoplay
+					</label>
+			</div>
+			<div class="deleteall" id="deleteall">
+
+			</div>
 		</div>
-		<div id="watchNext" class="watchNext"></div>
+		<div id="history" class="history"></div>
+		<div id="watchNext" class="watchNext clearfix"></div>
 		<div class="playlistDuration" id="duration"></div>
 	</body>
 </html>

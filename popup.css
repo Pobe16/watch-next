@@ -5,19 +5,133 @@ body {
 	font-family: arial,sans-serif;
 }
 
-.watchNext {
-	max-height: 500px;
-	overflow: auto;
+.playlistControl {
+	position: fixed;
+	top: 0px;
+	left: 0px;
+	padding: 3px;
+	background: rgba(255,255,255,0.95);
+	height: 20px;
+	width: 100%;
+	z-index: 5;
 }
-	
+
+.autoplay {
+	position: relative;;
+	float:left;
+	width: 40%;
+}
+
+.deleteall{
+	float: left;
+	width: 60%;
+}
+
+#clear {
+	position: relative;
+	float: right;
+	margin-right: 10px;
+}
+
+.history {
+	margin-top: 26px;
+}
+
+.historyItem {
+	float: left;
+	margin-right: 10px;
+	margin-bottom: 8px;
+}
+
+.historyItem:last-of-type {
+	margin-right: 0px;
+}
+
+.historyThumbnail {
+	position: relative;
+	z-index: -1;
+	top: 0;
+ 	left: 0;
+	width: 120px;
+	height: 68px;
+	opacity: 0.5;
+}
+
+.historyControls {
+	z-index: 1;
+	position: relative;
+	top: -50px;
+	width: 64px;
+	margin: 0px auto -32px auto;
+	opacity: 0.25;
+	overflow: hidden;
+}	
+
+.historyItem:hover .historyControls {
+	opacity: 1;
+}
+
 .playlistItem {
 	height: 68px;
 	overflow: hidden;
-	margin-top: 15px;
+	margin-top: 16px;
+	opacity: 1;
+	border: 0;
+}
+
+.playlistItem:first-of-type{
+	margin-top: 31px;
+	z-index: 0;
 }
 
 .playlistItem:last-of-type{
-	margin-bottom: 15px;
+	margin-bottom: 25px;
+}
+
+.playlistItem.dragged{
+	opacity: 0.4;
+}
+
+.dragdrop .playlistItem.dragover::before {
+	display: block;
+	width: 100%;
+	content: ">>>";
+	float:none;
+	clear:both;
+	margin-bottom: 4px;
+	opacity: 0.5;
+	background: rgb(247, 247, 161);
+	font-size: 24px;
+}
+
+.dragdrop .playlistItem.dragover{
+	height: 96px;
+	margin-top: 4px;
+}
+
+.playlistPhantom {
+	height: 34px;
+	width: 100%;
+	background: rgb(255,255,255);
+	border: #000 2px dotted;
+	font-size: 32px;
+	opacity: 0.2;
+	margin-top: 6px;
+	margin-bottom: 25px;
+}
+
+.playlistPhantom.dragover {
+	border: 0;
+	height: 38px;
+	opacity: 0.5;
+	padding-top: 2px;
+	padding-left: 2px;
+	margin-bottom: 23px;
+	background: rgb(247, 247, 161);
+}
+
+.watchNext {
+	margin-top: 20px;
 }
 
 .thumbnailContainer{
@@ -26,6 +140,8 @@ body {
 	width: 120px;
 	height: 68px;
 	position: relative;
+	cursor: move;
+	z-index: 5
 }
 
 .duration{
@@ -42,6 +158,7 @@ body {
 	position: absolute;
 	right: 2px;
 	bottom: 5px;
+	z-index: 6;
 }
 .infoContainer{
 	position: relative;
@@ -90,6 +207,13 @@ body {
 
 .playlistDuration {
 	text-align: center;
+	position: fixed;
+	bottom: 0px;
+	left: 0px;
+	padding: 3px;
+	background: rgba(255,255,255,0.95);
+	width: 100%;
+	z-index: 5;
 }
 
 .clearfix{
