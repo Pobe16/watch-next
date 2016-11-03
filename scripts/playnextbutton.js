@@ -2,31 +2,39 @@
 (function(){
 
 var button = {
-	//we are using existing youtube features to use their css tricks
-	laterButtonClass: 'addto-watch-later-button',
-	laterButtonsArray: [],
-	nextButtonClass: 'addto-watch-next-button',
+	linksArray: [],
 	nextButtonsArray: [],
+	linkType: '',
 
-	setArray: function(which) {
-		var a = 'ButtonsArray',
-			c = 'ButtonClass',
-			toConvert = document.getElementsByClassName(this[which+c]),
-			isItDone,
+	//selecting thumbnails to work with
+	setLinksArray: function() {
+		var toConvert = document.getElementsByClassName('thumb-link'),
 			element;
-			
-		if (which === 'later'){
-			isItDone = 'watch-next-button-created';
-		}else if (which === 'next' ){
-			isItDone = 'watch-next-clickable';
+		if (toConvert.length === 0) {
+			toConvert = document.getElementsByClassName('addto-watch-later-button');
+			this.linkType = 'button';
+		} else {
+			this.linkType = 'thumbnail';
 		}
+		this.linksArray = conFig.DOMtoArray(toConvert);
+		for (var i = this.linksArray.length-1; i > -1; i--) {
+			element = this.linksArray[i];
+			if (element.classList.contains('watch-next-button-created')) {
+				this.linksArray.splice(i, 1);
+			}
+		}
+	},
+	
+	//selecting buttons to assign onclick events
+	setButtonArray: function() {
+		var toConvert = document.getElementsByClassName('addto-watch-next-button'),
+			element;
 
-		this[which+a] = conFig.DOMtoArray(toConvert);
-
-		for (var i = this[which+a].length-1; i> -1; i--) {
-			element = this[which+a][i];				
-			if (element.classList.contains(isItDone)) {
-				this[which+a].splice(i, 1);
+		this.nextButtonsArray = conFig.DOMtoArray(toConvert);
+		for (var i = this.nextButtonsArray.length-1; i > -1; i--) {
+			element = this.nextButtonsArray[i];
+			if (element.classList.contains('watch-next-clickable')) {
+				this.nextButtonsArray.splice(i, 1);
 			}
 		}
 	},
@@ -40,28 +48,32 @@ var button = {
  				element.setAttribute('data-tooltip-text', 'Video added');
  				img.src = chrome.extension.getURL('icons/icon_done_16.png');
  				img.alt = 'Video added';
+ 				element.blur();
  			}
  		});
  	},
 
  	//button template to imitate youtube behavior
 	createButtonTemplate: function(id){
-		var style = 'right:26px;width:22px;height:22px;padding:0;border-radius:2px;',
-			classes = 'addto-button video-actions spf-nolink hide-until-delayloaded addto-watch-next-button yt-uix-button yt-uix-button-default yt-uix-button-size-small yt-uix-tooltip',
-			tempButton = document.createDocumentFragment(),
+		var tempButton = document.createDocumentFragment(),
 			template = {
-				button : conFig.insert('button', classes),
+				button : conFig.insert('button'),
 				span: conFig.insert('span', 'yt-uix-button-content'),
 				img: conFig.insert('img')
 			};
 
 		//setting attributes
+		if (button.linkType === 'thumbnail') {
+			template.button.classList = 'yt-uix-tooltip yt-uix-button-default addto-watch-next-button';
+		} else if (button.linkType === 'button') {
+			template.button.classList = 'addto-button video-actions yt-uix-tooltip yt-uix-button-default addto-watch-next-button';
+		}
+
 	 	template.img.src = chrome.extension.getURL('icons/icon_add_16.png');
 	 	template.img.alt = 'Watch Next';
 	 	template.button.title = 'Watch Next';
 	 	template.button.type = 'button';
 	 	template.button.setAttribute('onclick', ';return false;');
-	 	template.button.setAttribute('style', style);
 	 	template.button.setAttribute('data-video-ids', id);
 	 	template.button.setAttribute('role', 'button');
 
@@ -75,10 +87,19 @@ var button = {
 
  	// inserts a watch next button on every thumbnail containing the watch later button
  	insertButton: function(element){
- 		var tempVideoId = element.getAttribute('data-video-ids'),
+ 		//extracting video id from the href of link
+ 		var tempVideoId,
  			parentDiv = element.parentNode,
+			watchNextButton;
+		if (button.linkType === 'thumbnail') {
+			tempVideoId = element.getAttribute('href').slice(9);
 			watchNextButton = button.createButtonTemplate(tempVideoId);
-		parentDiv.insertBefore(watchNextButton, element);
+			parentDiv.insertBefore(watchNextButton, parentDiv.childNodes[3].nextSibling);
+		} else if (button.linkType === 'button') {
+			tempVideoId = element.getAttribute('data-video-ids');
+			watchNextButton = button.createButtonTemplate(tempVideoId);
+			parentDiv.insertBefore(watchNextButton, element);
+		}
 		element.classList.add('watch-next-button-created');
  	},
 
@@ -91,12 +112,12 @@ var button = {
  	},
  	
  	init: function(){
- 		button.setArray('later');
+ 		button.setLinksArray();
 
-		//where there is a watch later button, we can add our own
-		button.laterButtonsArray.forEach(button.insertButton);
+		//where there is a thumbnail for next video, we can add our own button
+		button.linksArray.forEach(button.insertButton);
 
-		button.setArray('next');
+		button.setButtonArray();
 
 		//on-click action for buttons
 		button.nextButtonsArray.forEach(button.makeButtonClickable);

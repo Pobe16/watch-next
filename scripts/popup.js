@@ -4,20 +4,29 @@
 
 var playlist={
 	videosArray: [],
-	videosLength: 0,
+	videosArrayButtons: [],
 	checkbox: {},
 	parentDiv: {},
-	playlistInfo: [],
+	tempPlaylistInfo: [],
+	library: {},
 	//duration in seconds
 	playlistDuration: 0,
 
 	//store the playlist info in local variables, then start processing them
 	getVideos: function(){
-		this.videosArray = JSON.parse(localStorage.watchNextPlaylist);
-		this.videosLength = this.videosArray.length;
-		if (this.videosLength){
-			playlist.getDataFromYoutube();
+		var i;
+		this.videosArray = JSON.parse(localStorage.watchNextPlaylist).concat(JSON.parse(localStorage.watchNextArchive));
+		this.videosArrayButtons = JSON.parse(localStorage.watchNextPlaylist);
+		i = this.videosArray.length;
+		if (i){
+			for (i; i>-1; i--) {
+				if (this.library.hasOwnProperty(this.videosArray[i])){
+					this.videosArray.splice(i,1);
+				}
+			}
+			this.getDataFromYoutube();
 		}
+
 	},
 
 	//enable or disable extension
@@ -47,14 +56,15 @@ var playlist={
 	needed to create visual playlist
 	*/
 	videoIds: function(){
-		var idsToSend=this.videosArray;
+		var idsToSend = this.videosArray.slice(0,50);
+		this.videosArray = this.videosArray.slice(50);
 		return idsToSend.join();
 	},
 
 	//communicate with YouTube API to download report on video id
 	getDataFromYoutube: function(){
-		var request = 'https://www.googleapis.com/youtube/v3/videos?id=' + this.videosArray.join() + '&key='+conFig.youTubeApiKey+
-		'&fields=items(id,snippet(title,channelTitle,thumbnails(default)),contentDetails(duration),statistics(viewCount))&part=snippet,contentDetails,statistics';
+		var request = 'https://www.googleapis.com/youtube/v3/videos?id=' + this.videoIds() + '&key='+conFig.youTubeApiKey+
+		'&fields=items(id,snippet(title,channelTitle),contentDetails(duration),statistics(viewCount))&part=snippet,contentDetails,statistics';
 		var oReq = new XMLHttpRequest();
 		oReq.open('get', request, true);
 		oReq.send();
@@ -67,8 +77,27 @@ var playlist={
 	'this' is reffering to the XMLHttpRequest();
 	*/
 	saveDataFromYoutube: function(){
-		playlist.playlistInfo = JSON.parse(this.responseText).items;
-		playlist.generate();
+		var i,
+			library;
+		playlist.tempPlaylistInfo = playlist.tempPlaylistInfo.concat(JSON.parse(this.responseText).items);
+		if (playlist.videosArray.length){
+			playlist.getDataFromYoutube();
+		} else {
+			for (i in playlist.tempPlaylistInfo) {
+				var id = playlist.tempPlaylistInfo[i].id;
+				if (!playlist.library.hasOwnProperty(id)){
+					playlist.library[id] = {};
+					playlist.library[id].duration = playlist.tempPlaylistInfo[i].contentDetails.duration;
+					playlist.library[id].author = playlist.tempPlaylistInfo[i].snippet.channelTitle;
+					playlist.library[id].title = playlist.tempPlaylistInfo[i].snippet.title;
+					playlist.library[id].views = playlist.tempPlaylistInfo[i].statistics.viewCount;
+				}
+			}
+			library = playlist.library;
+			chrome.storage.local.set(library, function(){
+				playlist.generate();
+			});
+		}
 	},
 
 
@@ -145,6 +174,7 @@ var playlist={
 		return duration;
 	},
 
+
 	/*
 	added commas to views by reiterating them backwards
 	and inserting comma every third digit
@@ -166,6 +196,7 @@ var playlist={
 	//collecting every information about the playlist item and starting generator
 	generate: function(){
 			var i,
+				wnplaylist = JSON.parse(localStorage.watchNextPlaylist),
 				videoDetails = {
 					id: '',
 					duration: '',
@@ -174,38 +205,47 @@ var playlist={
 					views: '',
 					thumbnail: ''
 				};
-		for (i in this.playlistInfo) {
-			videoDetails.id = this.playlistInfo[i].id;
-			videoDetails.duration = this.convertDuration(this.playlistInfo[i].contentDetails.duration);
-			videoDetails.author = this.playlistInfo[i].snippet.channelTitle;
-			videoDetails.title = this.playlistInfo[i].snippet.title;
-			videoDetails.views = this.convertViews(this.playlistInfo[i].statistics.viewCount);
-			videoDetails.thumbnail = this.playlistInfo[i].snippet.thumbnails.default.url;
+		for (i in wnplaylist) {
+			videoDetails.id = wnplaylist[i];
+			videoDetails.duration = this.convertDuration(this.library[videoDetails.id].duration);
+			videoDetails.author = this.library[videoDetails.id].author;
+			videoDetails.title = this.library[videoDetails.id].title;
+			videoDetails.views = this.convertViews(this.library[videoDetails.id].views);
+			videoDetails.thumbnail = 'https://i.ytimg.com/vi/'+videoDetails.id+'/default.jpg';
 			this.newNode(i, videoDetails);
 		}
 		/*
 		we call this function here instead of DOMContentLoaded listener
 		because of asynchronic nature of XMLHttpRequest
 		*/
+		this.generateHistory();
+		
 		this.buttonsShouldDoSomething();
+
 		this.setDuration();
+
+		this.setViewport();
+
+		this.generateClearAllButton();
+
+		this.startDragAndDrop();
 	},
 
 	//creating a div template and appending to the popup page
 	newNode:function(i, details){
 		
 		var toConstruct = {
-			playlistItem: 'div',
-			thumbnailContainer: 'div',
-			duration: 'span',
-			infoContainer: 'div',
-			title: 'span',
-			author: 'span',
-			views: 'span',
-			controls: 'div',
-			watchNow: 'img',
-			delet: 'img',
-			clearfix:'div'
+				playlistItem: 'div',
+				thumbnailContainer: 'div',
+				duration: 'span',
+				infoContainer: 'div',
+				title: 'span',
+				author: 'span',
+				views: 'span',
+				controls: 'div',
+				watchNow: 'img',
+				delet: 'img',
+				clearfix:'div'
 			},
 			//c will be a DOM playground
 			c = {},
@@ -230,6 +270,8 @@ var playlist={
 		c.author.innerHTML = 'by <b>' + details.author + '</b>';
 		c.views.innerHTML = details.views + 'views';
 		c.thumbnailContainer.setAttribute('style', 'background: url(' + details.thumbnail + ') 0px -11px;');
+		c.playlistItem.setAttribute('data-queuePosition',i);
+		c.playlistItem.setAttribute('draggable', 'true');
 		c.playlistItem.id = details.id;
 
 		// glueing it all together
@@ -248,14 +290,61 @@ var playlist={
 		this.parentDiv.appendChild(newDiv);
 	},
 
+	generateHistory: function(){
+		var i,
+			history = JSON.parse(localStorage.watchNextArchive);
+		for (i in history) {
+			this.newHistoryNode(i);
+		}		
+	},
+
+	newHistoryNode: function(i) {
+		var toConstruct = {
+				historyItem: 'div',
+				historyThumbnail: 'div',
+				historyControls: 'div',
+				readd: 'img',
+				info: 'img'
+			},
+			c = {},
+			historyId = JSON.parse(localStorage.watchNextArchive)[i],
+			newDiv = document.createDocumentFragment();
+
+		for (var a in toConstruct){
+			c[a] = conFig.insert(toConstruct[a], a);
+		}
+
+		c.readd.id = 'readd' + i;
+		c.readd.src = chrome.extension.getURL('icons/icon_add_32.png');
+		c.readd.title = 'Add to queue again';
+		c.readd.alt = 'Watch Again';
+		c.info.src = chrome.extension.getURL('icons/icon_info.png');
+		c.info.title = this.library[historyId].title;
+		c.info.alt = 'History Info';
+		c.historyThumbnail.setAttribute('style', 'background: url("https://i.ytimg.com/vi/'+historyId+'/default.jpg") 0px -11px;');
+		c.historyItem.id = historyId;
+
+		c.historyControls.appendChild(c.info);
+		c.historyControls.appendChild(c.readd);
+		c.historyItem.appendChild(c.historyThumbnail);
+		c.historyItem.appendChild(c.historyControls);
+		newDiv.appendChild(c.historyItem);
+
+		this.historyDiv.appendChild(newDiv);
+		
+	},
+
 	// function to add event listeners for buttons
 	buttonsShouldDoSomething: function(){
 		var watchButtons = document.getElementsByClassName('watchNow'),
-			deleteButtons = document.getElementsByClassName('delet');
+			deleteButtons = document.getElementsByClassName('delet'),
+			readdButtons = document.getElementsByClassName('readd');
 		watchButtons = conFig.DOMtoArray(watchButtons);
 		deleteButtons = conFig.DOMtoArray(deleteButtons);
+		readdButtons = conFig.DOMtoArray(readdButtons);
 		watchButtons.forEach(this.playButtonClick);
 		deleteButtons.forEach(this.deleteButtonClick);
+		readdButtons.forEach(this.readdButtonClick);
 	},
 
 	//action for clicking on delete icon, needs reloading of popup page
@@ -269,7 +358,7 @@ var playlist={
 
 	//action for clicking on watch now button
 	playButtonClick: function(element, index){
-		var id = playlist.videosArray[index],
+		var id = playlist.videosArrayButtons[index],
 			link = 'https://www.youtube.com/watch?v='+ id +'&feature=watchnext';
 		element.addEventListener('click', function(){
 			chrome.tabs.query({active: true, currentWindow: true}, function(tabs) {
@@ -277,20 +366,50 @@ var playlist={
 				//opens link in the most recent active tab
 				chrome.tabs.update(tab.id, {url: link});
 				//deletes the video from playlist and closes the popup window
-				chrome.runtime.sendMessage({whatToDo: 'deleteVideo', videoId: index}, function() {
+				chrome.runtime.sendMessage({whatToDo: 'videoWatched', videoId: index}, function() {
 					window.close();
 				});
 			});
 		});
 	},
-	setDuration: function(){
+
+	clearButtonClick: function(){
+		var element = document.getElementById('clear');
+		element.addEventListener('click', function(){
+			var el = document.getElementById('clear'),
+				what = el.value;
+
+			if (el.classList.contains('unlocked')) {
+				localStorage['watchNext' + what] = '[]';
+				chrome.storage.local.clear();
+				conFig.setIcon();
+				window.close();
+			} else {
+				el.innerHTML = 'Do you really want to clear ' + what + '?';
+				el.classList.add('unlocked');
+			}
+		});
+	},
+
+	readdButtonClick: function(element, index){
+		var tempArchive =  JSON.parse(localStorage.watchNextArchive),
+			ind = tempArchive[index];
+		element.addEventListener('click', function(){
+			chrome.runtime.sendMessage({whatToDo: 'addVideoToPlaylist', videoId: ind}, function() {
+				tempArchive.splice(index,1);
+				localStorage.watchNextArchive = JSON.stringify(tempArchive);
+				window.location.reload(true);
+			});
+		});
+	},
+
+	setDuration: function() {
 		if (this.playlistDuration) {
 			var node = document.getElementById('duration'),
 				seconds = this.playlistDuration % 60,
 				minutes = ((this.playlistDuration - seconds) % 3600) / 60,
 				hours = (this.playlistDuration - seconds - 60 * minutes) / 3600,
 				durationText = '';
-			console.log(this.playlistDuration);
 			if (hours) {
 				durationText = hours + ':';
 				if (minutes < 10) {
@@ -306,9 +425,165 @@ var playlist={
 
 			node.innerHTML = 'Playlist time: ' + durationText;	
 		}
-		
 
 	},
+	setViewport: function() {
+		if (JSON.parse(localStorage.watchNextArchive).length){
+			document.body.scrollTop = 80;
+		}
+	},
+
+	generateClearAllButton: function(){
+		var type;
+		if (JSON.parse(localStorage.watchNextPlaylist).length) {
+			type = 'Playlist';
+		} else if (JSON.parse(localStorage.watchNextArchive).length){
+			type = 'Archive';
+		} else {
+			type = false;
+		}
+		if (type) {
+			var node = document.getElementById('deleteall'),
+				newDiv = document.createDocumentFragment(),
+				clearButton = conFig.insert('button');
+			
+			clearButton.id = 'clear';
+			clearButton.innerHTML = 'Clear ' + type;
+			clearButton.value = type;
+
+			newDiv.appendChild(clearButton);
+			node.appendChild(newDiv);
+
+			this.clearButtonClick();
+		}
+
+	},
+
+	startDragAndDrop: function(){
+		var items = conFig.DOMtoArray(document.getElementsByClassName('playlistItem'));
+		[].forEach.call(items, function(item) {
+			item.addEventListener('dragstart', playlist.dnd.handleDragStart, false);
+			item.addEventListener('dragend', playlist.dnd.handleDragEnd, false);
+			item.addEventListener('dragover', playlist.dnd.handleDragOver, false);
+			item.addEventListener('drop', playlist.dnd.handleDrop, false);
+			item.addEventListener('dragenter', playlist.dnd.handleDragEnter, false);
+			item.addEventListener('dragleave', playlist.dnd.handleDragLeave, false);
+		});
+	},
+
+	dnd: {
+		oldPosition: false,
+		newPosition: false,
+		handleDragEnter: function(){
+			if (playlist.dnd.oldPosition !== parseInt(this.getAttribute('data-queuePosition'))){
+				if (playlist.dnd.oldPosition+1 !== parseInt(this.getAttribute('data-queuePosition'))){
+					this.classList.add('dragover');
+				}
+			}
+		},
+		handleDragLeave: function(){
+			this.classList.remove('dragover');
+		},
+		handleDragStart: function(){
+			this.classList.add('dragged');
+			this.parentNode.classList.add('dragdrop');
+			playlist.dnd.createPhantom();
+			playlist.dnd.oldPosition = parseInt(this.getAttribute('data-queuePosition'));
+
+		},
+		handleDragEnd: function(){
+			this.classList.remove('dragged');
+			this.parentNode.classList.remove('dragdrop');
+
+			[].forEach.call(conFig.DOMtoArray(document.getElementsByClassName('playlistItem')), function (item) {
+				item.classList.remove('dragover');
+
+			});
+
+			if (playlist.dnd.newPosition !== false) {
+				if (playlist.dnd.oldPosition !== playlist.dnd.newPosition) {
+					if (playlist.dnd.oldPosition+1 !== playlist.dnd.newPosition){
+						playlist.changeOrder(playlist.dnd.oldPosition, playlist.dnd.newPosition);
+					}
+				}
+			}
+
+			playlist.dnd.destroyPhantom();
+		},
+		handleDragOver: function(e){
+			if (e.preventDefault) {
+				e.preventDefault(); // Necessary. Allows us to drop.
+			}
+			if (!this.classList.contains('dragover')){
+				if(playlist.dnd.oldPosition !== parseInt(this.getAttribute('data-queuePosition'))){
+					if (playlist.dnd.oldPosition+1 !== parseInt(this.getAttribute('data-queuePosition'))){
+						this.classList.add('dragover');
+					}
+				}
+			}
+			//e.dataTransfer.dropEffect = 'move';
+		},
+		handleDrop: function(e){
+			if(e.stopPropagation) {
+				e.stopPropagation();
+			}
+			playlist.dnd.newPosition = parseInt(this.getAttribute('data-queuePosition'));
+			return false;
+		},
+		createPhantom: function(){
+			var mainNode = document.getElementById('watchNext'),
+				phantom = document.createDocumentFragment(),
+				element = conFig.insert('div', 'playlistPhantom');
+			element.setAttribute('data-queuePosition', JSON.parse(localStorage.watchNextPlaylist).length);
+			element.setAttribute('draggable', 'true');
+			element.id = "playlistPhantom";
+			element.textContent = ">>>";
+			phantom.appendChild(element);
+			mainNode.appendChild(phantom);
+			element.addEventListener('dragstart', playlist.dnd.handleDragStart, false);
+			element.addEventListener('dragend', playlist.dnd.handleDragEnd, false);
+			element.addEventListener('dragover', playlist.dnd.handleDragOver, false);
+			element.addEventListener('drop', playlist.dnd.handleDrop, false);
+			element.addEventListener('dragenter', playlist.dnd.handleDragEnter, false);
+			element.addEventListener('dragleave', playlist.dnd.handleDragLeave, false);
+		},
+		destroyPhantom: function(){
+			var phantom = document.getElementById('playlistPhantom');
+			phantom.parentNode.removeChild(phantom);
+			return false;
+		}
+	},
+
+	changeOrder: function(oldPosition, newPosition) {
+		var list = JSON.parse(localStorage.watchNextPlaylist),
+			toMove = list[oldPosition],
+			front = [],
+			back = [],
+			newList = [];
+
+		list.splice(oldPosition,1);
+
+
+		if (newPosition === 0){
+			list.unshift(toMove);
+			newList = list;
+		} else if (newPosition === list.length+1){
+			list.push(toMove);
+			console.log(list);
+			newList = list;
+		} else if (newPosition > oldPosition){
+			front = list.slice(0,newPosition-1);
+			back = list.slice(newPosition-1);
+			newList = front.concat(toMove,back);
+		} else if (newPosition < oldPosition){
+			front = list.slice(0,newPosition);
+			back = list.slice(newPosition);
+			newList = front.concat(toMove,back);
+		}
+		localStorage.watchNextPlaylist = JSON.stringify(newList);
+		window.location.reload();
+	},
+
 };
 
 document.addEventListener('DOMContentLoaded', function(){
@@ -318,6 +593,7 @@ document.addEventListener('DOMContentLoaded', function(){
 	// filling the variables
 	playlist.checkbox = document.getElementById('watchNextEnabled');
 	playlist.parentDiv = document.getElementById('watchNext');
+	playlist.historyDiv = document.getElementById('history');
 
 	//tick the checkbox if the extension is enabled
 	playlist.isCheckboxEnabled();
@@ -328,7 +604,10 @@ document.addEventListener('DOMContentLoaded', function(){
 	});
 
 	//starting the generate process
-	playlist.getVideos();
+	chrome.storage.local.get(function(mydata){
+		playlist.library = mydata;
+		playlist.getVideos();
+	});
 });
 
 }());
