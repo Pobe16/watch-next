@@ -17,3 +17,6 @@
 	cursor: pointer;
 }
 
+.thumb-wrapper.contains-percent-duration-watched .addto-watch-next-button{
+	bottom: 28px;
+}
