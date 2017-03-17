@@ -2,7 +2,7 @@
 
 (function(){
 
-var m_ytplayer = null,
+var m_ytplayer = document.getElementById('movie_player'),
 	
 	//attempt to identify the html5 video player
 	html5VideoPlayer = document.getElementsByTagName('video')[0],
@@ -15,11 +15,7 @@ var m_ytplayer = null,
 	and somewhat gibberish for me :-(
 	If the player is not html5, here is how we handle it:
 	*/
-	flash ={
-		getPlayerObject: function(){
-			return document.getElementById('movie_player');
-		},
-		
+	flash ={		
 		executePageScript: function(fn, params){
 		   // returned value container
 		   var val = document.createElement('div');
@@ -95,11 +91,38 @@ var m_ytplayer = null,
 		otherwise the response is 'false'
 		*/
 		getNextVideo: function(){
-			chrome.runtime.sendMessage({whatToDo: 'getNextVideoId'}, function(response) {
-				if (response.videoId) {
-					controls.loadNext(response.videoId);
-				}
-			});
+			var currentUrl = location.href;
+			if (!currentUrl.includes('&list=')){
+				chrome.runtime.sendMessage({whatToDo: 'getNextVideoId'}, function(response) {
+					if (response.videoId) {
+						controls.loadNext(response.videoId);
+					}
+				});
+			}
+		},
+
+		lookingForVideo: function(){
+			if (html5VideoPlayer) {
+				//if there is HTML5 video, start our script when it ends
+				html5VideoPlayer.onended = function() {
+					/*
+					When the full ad play with the video (when user is not allowed to click "skip ad",
+					or he/she choses to watch the whole film), the onended function will be called twice
+					first when the ad ends, and second time when the movie end. That's why the script
+					wait 200 ms and then tries to determine if user just finished watching ad or movie.	
+					Needs testing on slower broadbands to see if 200 ms is enough.	
+					*/
+					window.setTimeout(function(){controls.adOrMovie();}, 200);
+				};
+			} else if (m_ytplayer) {
+				//if there is no HTML5 video, but flash video, start observing it
+				flash.videoState();
+			} else {
+				//if there is no video at all, try to look again every second
+				m_ytplayer = document.getElementById('movie_player');
+				html5VideoPlayer = document.getElementsByTagName('video')[0];
+				window.setTimeout(function(){controls.lookingForVideo();},1000)
+			}
 		}
 	};
 
@@ -107,23 +130,7 @@ var m_ytplayer = null,
 I wanted to put an event listener for DOMContentLoaded, but Chrome starts 
 content scripts after that event.
 */
-if (html5VideoPlayer) {
-	//if there is HTML5 video, start our script when it ends
-	html5VideoPlayer.onended = function() {
-		/*
-		When the full ad play with the video (when user is not allowed to click "skip ad",
-		or he/she choses to watch the whole film), the onended function will be called twice
-		first when the ad ends, and second time when the movie end. That's why the script
-		wait 200 ms and then tries to determine if user just finished watching ad or movie.
-		Needs testing on slower broadbands to see if 200 ms is enough.
-		*/
-		window.setTimeout(function(){controls.adOrMovie();}, 200);
-	};
-} else {
-	//if not, find the flash player
-	m_ytplayer = flash.getPlayerObject();
-	//and start observing for the video end
-	flash.videoState();
-}
+
+controls.lookingForVideo();
 
 }());

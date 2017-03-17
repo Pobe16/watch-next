@@ -2,23 +2,7 @@
 (function(){
 
 var watchNext = {
-	/*
-	I am expanding the localStorage usage with archive, and possibly library,
-	so this function will probably be obsolete soon...
-	*/
-	/*
-	localStorageService: function (whatToDo, value) {
-		//get the playlist from local storage, changing the string to array
-		if (whatToDo === 'get') {
-			return JSON.parse(localStorage.getItem('watchNextPlaylist'));
-		//set the playlist to new value, changing array to string			
-		} else if (whatToDo === 'set') {
-			var setValue = JSON.stringify(value);
-			localStorage.setItem('watchNextPlaylist', setValue);
-		}
-	},
-	*/
-
+	
 	/*
 	isolate the youtube video id from the address, regex from stackoverflow
 	http://stackoverflow.com/questions/3452546/javascript-regex-how-to-get-youtube-video-id-from-url
@@ -34,19 +18,22 @@ var watchNext = {
 	},
 
 	addVideoToPlaylist: function(storeThat) {
-		var tempPlaylist = JSON.parse(localStorage.getItem('watchNextPlaylist'));
-		//checking if the localStorage is active
+		//checking if the localStorage is active, just in case
 		conFig.startLS();
-		//in case of double-, triple-click etc. the item will be added just once
-		if (!(tempPlaylist[tempPlaylist.length-1]===storeThat)) {
+		chrome.storage.sync.get(function(data){
+			var tempPlaylist = conFig.convertSyncGet(data);
+			//in case of double-, triple-click etc. the item will be added just once
+			// ***NEW*** I am deleting this check, 
+			//because now I will be dealing with multiclicking otherwise
+			//if (!(tempPlaylist[tempPlaylist.length-1]===storeThat)) {
 			tempPlaylist.push(storeThat);
-			localStorage.setItem('watchNextPlaylist', JSON.stringify(tempPlaylist));
-			conFig.setIcon();
-		} 	
+			conFig.syncSet(tempPlaylist);
+			//}	
+		});
 	},
 
 	startVideoAddingProcess: function(){
-		//in this case "this" is reference to XMLHttpRequest
+		//in this case 'this' is reference to XMLHttpRequest
 		var videoResponse = JSON.parse(this.responseText).items;
 			if (videoResponse.length) {
 				watchNext.addVideoToPlaylist(videoResponse[0].id);
@@ -69,23 +56,24 @@ var watchNext = {
 	},
 	//removes the video id from local storage
 	deleteFromPlaylist: function(id, archive){
-		var tempPlaylist = JSON.parse(localStorage.getItem('watchNextPlaylist')),
-			tempArchive = JSON.parse(localStorage.getItem('watchNextArchive'));
-
-		if (archive){
-			tempArchive.unshift(tempPlaylist[id]);
-			//removes the library entry about the movie we are about to delete from library
-			if (tempArchive.length > 3) {
-				chrome.storage.local.remove(tempArchive[3]);
-				tempArchive.splice(3);				
+		chrome.storage.sync.get(function(data){
+			var tempPlaylist = conFig.convertSyncGet(data),
+				tempArchive = JSON.parse(localStorage.getItem('watchNextArchive'));
+			if (archive){
+				tempArchive.unshift(tempPlaylist[id]);
+				//removes the library entry about the movie we are about to delete from library
+				if (tempArchive.length > 3) {
+					chrome.storage.local.remove(tempArchive[3]);
+					tempArchive.splice(3);				
+				}
+				localStorage.setItem('watchNextArchive', JSON.stringify(tempArchive));
 			}
-			localStorage.setItem('watchNextArchive', JSON.stringify(tempArchive));
-		}
-		chrome.storage.local.remove(tempPlaylist[id]);
-		tempPlaylist.splice(id,1);
-		localStorage.setItem('watchNextPlaylist', JSON.stringify(tempPlaylist));
-		conFig.setIcon();
+			chrome.storage.local.remove(tempPlaylist[id]);
+			tempPlaylist.splice(id,1);
+			conFig.syncSet(tempPlaylist);
+		});
 	},
+
 	//on click of context menu item
 	contextMenuClick: function(info){
 		watchNext.checkLink(info.linkUrl);
@@ -97,14 +85,16 @@ chrome.runtime.onMessage.addListener(
 	function(request, sender, sendResponse) {
 		//determine the next video in playlist
 		if (request.whatToDo === 'getNextVideoId') {
-			var toSend = JSON.parse(localStorage.watchNextPlaylist),
-				extensionDisabled = !JSON.parse(localStorage.watchNext);
-			//send the next video id, or false if the playlist is empty or extension is turned off
-			if (toSend.length === 0 || extensionDisabled) {
-				sendResponse({videoId: false});
-			} else {
-				sendResponse({videoId: toSend[0]});
-			}
+			chrome.storage.sync.get(function(data){
+				var toSend = conFig.convertSyncGet(data),
+					extensionDisabled = !JSON.parse(localStorage.getItem('watchNext'));
+				//send the next video id, or false if the playlist is empty or extension is turned off
+				if (toSend.length === 0 || extensionDisabled) {
+					sendResponse({videoId: false});
+				} else {
+					sendResponse({videoId: toSend[0]});
+				}
+			});
 		}
 		//delete any video from list, if the delete button was used, do not archive it
 		if (request.whatToDo === 'videoWatched' || request.whatToDo === 'deleteVideo'){
@@ -122,6 +112,16 @@ chrome.runtime.onMessage.addListener(
 			watchNext.checkLink(video);
 			sendResponse({added: true});
 		}
+		// if the user changed his/her mind while adding videos on youtube thumbnails,
+		//here is the function to delete last added item from playlist
+		if (request.whatToDo === 'deleteRecentlyAddedVideo') {
+			chrome.storage.sync.get(function(data){
+				var tempPlaylist = conFig.convertSyncGet(data);
+				tempPlaylist.splice(tempPlaylist.length-1, 1);
+				conFig.syncSet(tempPlaylist);
+				sendResponse({videoId: false});
+			});
+		}
 		return true;
 });
 
@@ -131,6 +131,10 @@ chrome.runtime.onInstalled.addListener(function() {
 	//context menu config
 	chrome.contextMenus.create(conFig.contextMenu);
 });
+
+chrome.storage.onChanged.addListener(conFig.setIcon);
+
+conFig.startLS();
 
 conFig.setIcon();
 

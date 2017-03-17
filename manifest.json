@@ -4,7 +4,7 @@
 	"name": "Watch Next: YouTube",
 	"short_name": "Watch Next",
 	"description": "Watch Next lets you tell YouTube which video you want to watch after this one.",
-	"version": "1.6.1",
+	"version": "1.8.0",
 
 	"permissions": [
 		"https://youtube.com/",
@@ -37,7 +37,7 @@
 			"js": ["scripts/config.js", "scripts/playnextbutton.js"]
 		},
 		{
-			"matches": ["*://*.youtube.com/watch?v=*" , "*://youtube.com/*"],
+			"matches": ["*://*.youtube.com/*"],
 			"exclude_matches": ["*://*/watch*list=*"],
 			"js": ["scripts/config.js", "scripts/playnext.js"]
 		}
@@ -46,6 +46,7 @@
 	"web_accessible_resources": [
 	"icons/icon_add_16.png", 
 	"icons/icon_add_32.png", 
+	"icons/icon_delete_16.png", 
 	"icons/icon_delete_32.png", 
 	"icons/icon_disabled_32.png", 
 	"icons/icon_done_16.png", 

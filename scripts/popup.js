@@ -3,6 +3,8 @@
 (function(){
 
 var playlist={
+	tempPlaylistArray: [],
+	tempArchiveArray: [],
 	videosArray: [],
 	videosArrayButtons: [],
 	checkbox: {},
@@ -11,12 +13,14 @@ var playlist={
 	library: {},
 	//duration in seconds
 	playlistDuration: 0,
+	deadVideos: [],
 
 	//store the playlist info in local variables, then start processing them
 	getVideos: function(){
 		var i;
-		this.videosArray = JSON.parse(localStorage.watchNextPlaylist).concat(JSON.parse(localStorage.watchNextArchive));
-		this.videosArrayButtons = JSON.parse(localStorage.watchNextPlaylist);
+		this.tempArchiveArray = JSON.parse(localStorage.getItem("watchNextArchive"));
+		this.videosArray = this.tempPlaylistArray.concat(this.tempArchiveArray);
+		this.videosArrayButtons = this.tempPlaylistArray;
 		i = this.videosArray.length;
 		if (i){
 			for (i; i>-1; i--) {
@@ -44,7 +48,7 @@ var playlist={
 	and check/uncheck the checkbox
 	*/
 	isCheckboxEnabled: function(){
-		if (JSON.parse(localStorage.watchNext)){
+		if (JSON.parse(localStorage.getItem("watchNext"))){
 			this.checkbox.checked = true;
 		} else {
 			this.checkbox.checked = false;
@@ -196,7 +200,7 @@ var playlist={
 	//collecting every information about the playlist item and starting generator
 	generate: function(){
 			var i,
-				wnplaylist = JSON.parse(localStorage.watchNextPlaylist),
+				wnplaylist = playlist.tempPlaylistArray,
 				videoDetails = {
 					id: '',
 					duration: '',
@@ -207,12 +211,18 @@ var playlist={
 				};
 		for (i in wnplaylist) {
 			videoDetails.id = wnplaylist[i];
-			videoDetails.duration = this.convertDuration(this.library[videoDetails.id].duration);
-			videoDetails.author = this.library[videoDetails.id].author;
-			videoDetails.title = this.library[videoDetails.id].title;
-			videoDetails.views = this.convertViews(this.library[videoDetails.id].views);
-			videoDetails.thumbnail = 'https://i.ytimg.com/vi/'+videoDetails.id+'/default.jpg';
-			this.newNode(i, videoDetails);
+			//checking if the id is in the library. If it isn't, it means the video got deleted / blocked.
+			if (this.library[videoDetails.id]) {
+				videoDetails.duration = this.convertDuration(this.library[videoDetails.id].duration);
+				videoDetails.author = this.library[videoDetails.id].author;
+				videoDetails.title = this.library[videoDetails.id].title;
+				videoDetails.views = this.convertViews(this.library[videoDetails.id].views);
+				videoDetails.thumbnail = 'https://i.ytimg.com/vi/'+videoDetails.id+'/default.jpg';
+				this.newNode(i, videoDetails);
+			} else {
+				//if the id is not in the library (doesn't exist / is deleted from youtube) proceed to create a list of dead videos
+				this.deadVideos = this.deadVideos.concat(videoDetails.id);
+			}
 		}
 		/*
 		we call this function here instead of DOMContentLoaded listener
@@ -223,6 +233,10 @@ var playlist={
 		this.buttonsShouldDoSomething();
 
 		this.setDuration();
+
+		if (this.deadVideos.length) {
+			this.clearDeadVideos();
+		}
 
 		this.setViewport();
 
@@ -268,7 +282,7 @@ var playlist={
 		c.duration.innerHTML = details.duration;
 		c.title.innerHTML = details.title;
 		c.author.innerHTML = 'by <b>' + details.author + '</b>';
-		c.views.innerHTML = details.views + 'views';
+		c.views.innerHTML = details.views + ' views';
 		c.thumbnailContainer.setAttribute('style', 'background: url(' + details.thumbnail + ') 0px -11px;');
 		c.playlistItem.setAttribute('data-queuePosition',i);
 		c.playlistItem.setAttribute('draggable', 'true');
@@ -292,9 +306,15 @@ var playlist={
 
 	generateHistory: function(){
 		var i,
-			history = JSON.parse(localStorage.watchNextArchive);
+			history = JSON.parse(localStorage.getItem("watchNextArchive"));
 		for (i in history) {
-			this.newHistoryNode(i);
+			//checking if the archive video is live
+			if(this.library[history[i]]){
+				this.newHistoryNode(i);
+			} else {
+				//if not - add it to dead pile
+				this.deadVideos = this.deadVideos.concat(history[i]);
+			}
 		}		
 	},
 
@@ -307,7 +327,7 @@ var playlist={
 				info: 'img'
 			},
 			c = {},
-			historyId = JSON.parse(localStorage.watchNextArchive)[i],
+			historyId = JSON.parse(localStorage.getItem("watchNextArchive"))[i],
 			newDiv = document.createDocumentFragment();
 
 		for (var a in toConstruct){
@@ -380,7 +400,11 @@ var playlist={
 				what = el.value;
 
 			if (el.classList.contains('unlocked')) {
-				localStorage['watchNext' + what] = '[]';
+				if (what == "Archive") {
+					localStorage.setItem("watchNextArchive", '[]');
+				} else if (what == "Playlist"){
+					conFig.syncClear();
+				}
 				chrome.storage.local.clear();
 				conFig.setIcon();
 				window.close();
@@ -392,15 +416,20 @@ var playlist={
 	},
 
 	readdButtonClick: function(element, index){
-		var tempArchive =  JSON.parse(localStorage.watchNextArchive),
+		var tempArchive =  JSON.parse(localStorage.getItem("watchNextArchive")),
 			ind = tempArchive[index];
 		element.addEventListener('click', function(){
 			chrome.runtime.sendMessage({whatToDo: 'addVideoToPlaylist', videoId: ind}, function() {
 				tempArchive.splice(index,1);
-				localStorage.watchNextArchive = JSON.stringify(tempArchive);
-				window.location.reload(true);
+				chrome.storage.onChanged.addListener(playlist.refreshBecauseHistory);
+				localStorage.setItem("watchNextArchive", JSON.stringify(tempArchive));
 			});
 		});
+	},
+
+	refreshBecauseHistory: function(){
+		window.location.reload(true);
+		chrome.storage.onChanged.removeListener(playlist.refreshBecauseHistory);
 	},
 
 	setDuration: function() {
@@ -427,17 +456,50 @@ var playlist={
 		}
 
 	},
+
+	clearDeadVideos: function() {
+		var i,
+			deletedVideosCounter = 0;
+		//check the dead videos in the playlist
+		for(i in this.deadVideos){
+			var index = this.tempPlaylistArray.indexOf(this.deadVideos[i]);
+			while (index>-1) {
+				this.tempPlaylistArray.splice(index, 1);
+				deletedVideosCounter++;
+				index = this.tempPlaylistArray.indexOf(this.deadVideos[i]);
+			}
+			//and archive
+			index = this.tempArchiveArray.indexOf(this.deadVideos[i]);
+			while (index>-1) {
+				this.tempArchiveArray.splice(index, 1);
+				deletedVideosCounter++;
+				index = this.tempArchiveArray.indexOf(this.deadVideos[i]);
+			}
+		}
+		if (deletedVideosCounter) {
+			var node = document.getElementById('duration'),
+				content = node.innerHTML;
+			conFig.syncSet(this.tempPlaylistArray);
+			localStorage.setItem("watchNextArchive", JSON.stringify(this.tempArchiveArray));
+			if (deletedVideosCounter == 1) {
+				node.innerHTML = content + '<br /><br />' + deletedVideosCounter + ' video was deleted from your playlist, because it was deleted from YouTube. Sorry about that.';		
+			} else {
+				node.innerHTML = content + '<br /><br />' + deletedVideosCounter + ' videos were deleted from your playlist, because they were deleted from YouTube. Sorry about that.';		
+			}
+		}
+	},
+
 	setViewport: function() {
-		if (JSON.parse(localStorage.watchNextArchive).length){
+		if (JSON.parse(localStorage.getItem("watchNextArchive")).length){
 			document.body.scrollTop = 80;
 		}
 	},
 
 	generateClearAllButton: function(){
 		var type;
-		if (JSON.parse(localStorage.watchNextPlaylist).length) {
+		if (playlist.tempPlaylistArray.length) {
 			type = 'Playlist';
-		} else if (JSON.parse(localStorage.watchNextArchive).length){
+		} else if (JSON.parse(localStorage.getItem("watchNextArchive")).length){
 			type = 'Archive';
 		} else {
 			type = false;
@@ -497,7 +559,6 @@ var playlist={
 
 			[].forEach.call(conFig.DOMtoArray(document.getElementsByClassName('playlistItem')), function (item) {
 				item.classList.remove('dragover');
-
 			});
 
 			if (playlist.dnd.newPosition !== false) {
@@ -534,10 +595,10 @@ var playlist={
 			var mainNode = document.getElementById('watchNext'),
 				phantom = document.createDocumentFragment(),
 				element = conFig.insert('div', 'playlistPhantom');
-			element.setAttribute('data-queuePosition', JSON.parse(localStorage.watchNextPlaylist).length);
+			element.setAttribute('data-queuePosition', playlist.tempPlaylistArray.length);
 			element.setAttribute('draggable', 'true');
-			element.id = "playlistPhantom";
-			element.textContent = ">>>";
+			element.id = 'playlistPhantom';
+			element.textContent = '>>>';
 			phantom.appendChild(element);
 			mainNode.appendChild(phantom);
 			element.addEventListener('dragstart', playlist.dnd.handleDragStart, false);
@@ -555,7 +616,7 @@ var playlist={
 	},
 
 	changeOrder: function(oldPosition, newPosition) {
-		var list = JSON.parse(localStorage.watchNextPlaylist),
+		var list = playlist.tempPlaylistArray,
 			toMove = list[oldPosition],
 			front = [],
 			back = [],
@@ -569,7 +630,6 @@ var playlist={
 			newList = list;
 		} else if (newPosition === list.length+1){
 			list.push(toMove);
-			console.log(list);
 			newList = list;
 		} else if (newPosition > oldPosition){
 			front = list.slice(0,newPosition-1);
@@ -580,7 +640,7 @@ var playlist={
 			back = list.slice(newPosition);
 			newList = front.concat(toMove,back);
 		}
-		localStorage.watchNextPlaylist = JSON.stringify(newList);
+		conFig.syncSet(newList);
 		window.location.reload();
 	},
 
@@ -606,7 +666,11 @@ document.addEventListener('DOMContentLoaded', function(){
 	//starting the generate process
 	chrome.storage.local.get(function(mydata){
 		playlist.library = mydata;
-		playlist.getVideos();
+		chrome.storage.sync.get(function(data){
+			playlist.tempPlaylistArray = conFig.convertSyncGet(data);
+			playlist.getVideos();
+		});
+		
 	});
 });
 
