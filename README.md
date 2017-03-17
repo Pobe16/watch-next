@@ -1,16 +1,43 @@
 http://goo.gl/3y2xFo
 
 Watch Next lets you tell YouTube which video you want to watch after this one.
-Ever saw a couple of YouTube video and wanted to watch them just right after the one you are watching now? Make a Watch Next playlist - it plays automatically when you finish watching the current video.
+Ever saw a couple of YouTube videos and wanted to watch them just right after the one you are watching now? Make a Watch Next playlist - it plays automatically when you finish watching the current video.
 
 You can add a video to Watch Next playlist from any thumbnail on YouTube, or from any link to YouTube (right-click menu).
 
-Have fun making playlist!
+Have fun making playlists!
 
 Icons by Alexander Moore
 
+Changes in version 1.8.0
+- You can now add duplicate videos to the playlist from the right-click menu
+- You can now add duplicate videos to the playlist from thumbnail button - just move your mouse away from the thumbnail, and when you target it again, you can add it again
+- If you click the button on thumbnail by mistake, you can click two more times to remove the video from playlist
+
+Changes in version 1.7.1
+* Fixed playlist not showing the recently readded (from history) item
+* Fixed playlist sometimes not refreshing the icon when changing playlist size
+
+Changes in version 1.7.0
+- Playlist is now synchronised between computers using the same Google account.
+* If you have more than one computer with different playlists on them, the playlists will be joined together.
+* Fixed a typo
+
+Changes in version 1.6.5
+* Fixed the playlist not rendering correctly when there is a dead YouTube link in it. The dead or corrupted links will be deleted from your playlist automatically - thanks to Denis for heads up.
+* Fixed the thumbnails sometimes displaying over the Autoplay button.
+
+Changes in version 1.6.4
+* fixed the button not showing on some thumbnails in youtube sidebar
+
+Changes in version 1.6.3
+* the playlist now correctly plays next video when switched from YouTube page without big player
+
+Changes in version 1.6.2
+* fixed the button placement on thumbnails for already watched movies
+
 Changes in version 1.6.1
-*minor text changes
+* minor text changes
 
 Changes in version 1.6.0
 - Playlist is now sortable - grab the video thumbnail and move it to new position!
