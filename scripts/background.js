@@ -3,20 +3,6 @@
 
 var watchNext = {
 	
-	/*
-	isolate the youtube video id from the address, regex from stackoverflow
-	http://stackoverflow.com/questions/3452546/javascript-regex-how-to-get-youtube-video-id-from-url
-	*/
-	youtubeParser: function(url){
-		var regExp = /.*(?:youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=)([^#\&\?]*).*/,
-			match = url.match(regExp);
-		if (match && match[1].length === 11){
-			return match[1];
-		} else {
-			return false;
-		}
-	},
-
 	addVideoToPlaylist: function(storeThat) {
 		//checking if the localStorage is active, just in case
 		conFig.startLS();
@@ -45,7 +31,7 @@ var watchNext = {
 
 	//saves the target video id in local storage
 	checkLink: function(videoUrl){
-		var toSend = this.youtubeParser(videoUrl);
+		var toSend = conFig.youtubeParser(videoUrl);
 		if (toSend) {
 			var request = 'https://www.googleapis.com/youtube/v3/videos?id=' + toSend + '&key=' + conFig.youTubeApiKey + '&fields=items(id,snippet(title))&part=snippet',
 				oReq = new XMLHttpRequest();
@@ -87,9 +73,13 @@ chrome.runtime.onMessage.addListener(
 		if (request.whatToDo === 'getNextVideoId') {
 			chrome.storage.sync.get(function(data){
 				var toSend = conFig.convertSyncGet(data),
-					extensionDisabled = !JSON.parse(localStorage.getItem('watchNext'));
-				//send the next video id, or false if the playlist is empty or extension is turned off
-				if (toSend.length === 0 || extensionDisabled) {
+					autoplayDisabled = !JSON.parse(localStorage.getItem('watchNext'));
+				//if the message was sent from the button under the video player, don't mind the state of the autoplay function
+				if (request.button){
+					autoplayDisabled = false;
+				}
+				//send the next video id, or false if the playlist is empty or autoplay is turned off
+				if (toSend.length === 0 || autoplayDisabled) {
 					sendResponse({videoId: false});
 				} else {
 					sendResponse({videoId: toSend[0]});

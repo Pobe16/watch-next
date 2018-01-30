@@ -14,6 +14,20 @@ var conFig = {
 		'id': 'watchNext',
 	},
 
+	/*
+	isolate the youtube video id from the address, regex from stackoverflow
+	http://stackoverflow.com/questions/3452546/javascript-regex-how-to-get-youtube-video-id-from-url
+	*/
+	youtubeParser: function(url){
+		var regExp = /.*(?:youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=)([^#\&\?]*).*/,
+			match = url.match(regExp);
+		if (match && match[1].length === 11){
+			return match[1];
+		} else {
+			return false;
+		}
+	},
+
 	setIcon : function () {
 		chrome.storage.sync.get(function(data){
 			var count = conFig.convertSyncGet(data).length + '',

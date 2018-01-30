@@ -94,7 +94,12 @@ var playlist={
 					playlist.library[id].duration = playlist.tempPlaylistInfo[i].contentDetails.duration;
 					playlist.library[id].author = playlist.tempPlaylistInfo[i].snippet.channelTitle;
 					playlist.library[id].title = playlist.tempPlaylistInfo[i].snippet.title;
-					playlist.library[id].views = playlist.tempPlaylistInfo[i].statistics.viewCount;
+					if(playlist.tempPlaylistInfo[i].hasOwnProperty('statistics')){
+						playlist.library[id].views = playlist.tempPlaylistInfo[i].statistics.viewCount;
+					} else {
+						playlist.library[id].views = 'Hidden';
+					}
+					
 				}
 			}
 			library = playlist.library;
@@ -186,12 +191,16 @@ var playlist={
 	convertViews: function(views){
 		var output = '',
 			l = views.length-1;
-		for (var i in views){
-			output = views[l-i] + output;
-			//second argument is there to not insert commas
-			//in front of the number
-			if((i+1)%3===0&&i<l){
-				output = ',' + output;
+		if (views ==='Hidden') {
+			output = views;
+		} else {
+			for (var i in views){
+				output = views[l-i] + output;
+				//second argument is there to not insert commas
+				//in front of the number
+				if((i+1)%3===0&&i<l){
+					output = ',' + output;
+				}
 			}
 		}
 		return output;

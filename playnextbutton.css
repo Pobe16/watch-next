@@ -17,6 +17,76 @@
 	cursor: pointer;
 }
 
+ytd-thumbnail:hover .new-look-addto-watch-next-button{
+	opacity: 0.8;
+}
+
+.new-look-addto-watch-next-button{
+	align-items: center;
+	background-color: rgb(17, 17, 17);
+	border-bottom-left-radius: 2px;
+	border-bottom-right-radius: 2px;
+	border-top-left-radius: 2px;
+	border-top-right-radius: 2px;
+	color: rgb(255, 255, 255);
+	cursor: pointer;
+	display: flex;
+	flex-direction: row;
+	font-family: Roboto, Arial, sans-serif;
+	font-size: 10px;
+	height: 28px;
+	justify-content: center;
+	margin-bottom: 4px;
+	margin-left: 4px;
+	margin-right: 4px;
+	margin-top: 4px;
+	opacity: 0;
+	outline-color: rgb(255, 255, 255);
+	outline-style: none;
+	outline-width: 0px;
+	position: absolute;
+	right: 0px;
+	top: 32px;
+	transition-delay: 0s;
+	transition-duration: 0.3s;
+	transition-property: opacity;
+	transition-timing-function: ease;
+	width: 28px;
+}
+
+.new-look-addto-watch-next-button:hover{
+	opacity: 0.6;
+}
+
+.new-look-addto-watch-next-button yt-icon{
+	display: none;
+}
+
+.new-look-addto-watch-next-button img{
+	margin: auto;
+}
+
 .thumb-wrapper.contains-percent-duration-watched .addto-watch-next-button{
 	bottom: 28px;
+}
+
+.watch-next-button-video-in-playlist{
+	box-shadow: 0px 0px 0px 2px #9c6;
+}
+
+/*.watch-title-container {
+
+}*/
+
+.watch-next-controls {
+	float: right;
+}
+
+.watch-next-controls div{
+	float: left;
+}
+
+.watch-next-controls button{
+	width: 22px;
+	height: 22px;
 }
