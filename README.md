@@ -9,6 +9,19 @@ Have fun making playlists!
 
 Icons by Alexander Moore
 
+Changes in version 1.10.0:
+* ~EXPERIMENTAL~ rendering watch next button on YouTube's new layout, please send any bugs to pobe16@gmail.com. You can try the new look here: http://www.youtube.com/new 
+
+Changes in version 1.9.2:
+* fixed playlist not showing up when user added a video with hidden statistics, thanks Charles for the tip!
+
+Changes in version 1.9.1:
+* fixed the start / skip button not showing when the autoplay option is disabled 
+
+Changes in version 1.9.0
+- Added extra control buttons under the video player to add current video to playlist and to play next video from playlist immediately
+- Recently added videos now have green border (experimental)
+
 Changes in version 1.8.0
 - You can now add duplicate videos to the playlist from the right-click menu
 - You can now add duplicate videos to the playlist from thumbnail button - just move your mouse away from the thumbnail, and when you target it again, you can add it again

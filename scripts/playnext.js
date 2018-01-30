@@ -71,6 +71,7 @@ var m_ytplayer = document.getElementById('movie_player'),
 		*/
 		adOrMovie: function(){
 			var movieEnded = 0;
+			console.log(html5VideoPlayer.parentNode.parentNode.classList);
 			if (html5VideoPlayer.parentNode.parentNode.classList.contains('ended-mode')) {
 				movieEnded = 1;
 			}
@@ -101,7 +102,7 @@ var m_ytplayer = document.getElementById('movie_player'),
 			}
 		},
 
-		lookingForVideo: function(){
+	 	lookingForVideo: function(){
 			if (html5VideoPlayer) {
 				//if there is HTML5 video, start our script when it ends
 				html5VideoPlayer.onended = function() {
@@ -112,7 +113,7 @@ var m_ytplayer = document.getElementById('movie_player'),
 					wait 200 ms and then tries to determine if user just finished watching ad or movie.	
 					Needs testing on slower broadbands to see if 200 ms is enough.	
 					*/
-					window.setTimeout(function(){controls.adOrMovie();}, 200);
+					window.setTimeout(function(){controls.adOrMovie();}, 1000);
 				};
 			} else if (m_ytplayer) {
 				//if there is no HTML5 video, but flash video, start observing it
@@ -121,7 +122,7 @@ var m_ytplayer = document.getElementById('movie_player'),
 				//if there is no video at all, try to look again every second
 				m_ytplayer = document.getElementById('movie_player');
 				html5VideoPlayer = document.getElementsByTagName('video')[0];
-				window.setTimeout(function(){controls.lookingForVideo();},1000)
+				window.setTimeout(function(){controls.lookingForVideo();},1000);
 			}
 		}
 	};

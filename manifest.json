@@ -4,7 +4,7 @@
 	"name": "Watch Next: YouTube",
 	"short_name": "Watch Next",
 	"description": "Watch Next lets you tell YouTube which video you want to watch after this one.",
-	"version": "1.8.0",
+	"version": "1.10.0",
 
 	"permissions": [
 		"https://youtube.com/",
@@ -45,11 +45,15 @@
 
 	"web_accessible_resources": [
 	"icons/icon_add_16.png", 
+	"icons/icon_add_22.png", 
 	"icons/icon_add_32.png", 
 	"icons/icon_delete_16.png", 
+	"icons/icon_delete_22.png", 
 	"icons/icon_delete_32.png", 
 	"icons/icon_disabled_32.png", 
 	"icons/icon_done_16.png", 
+	"icons/icon_done_22.png", 
+	"icons/icon_fwd_22.png", 
 	"icons/icon16.png", 
 	"icons/icon32.png",
 	"icons/icon_info.png"
