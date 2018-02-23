@@ -9,6 +9,10 @@ Have fun making playlists!
 
 Icons by Alexander Moore
 
+Changes in version 1.10.1:
+* fixed buttons showing on thumbnails really late
+* fixed buttons sometimes adding wrong movie to the playlist
+
 Changes in version 1.10.0:
 * ~EXPERIMENTAL~ rendering watch next button on YouTube's new layout, please send any bugs to pobe16@gmail.com. You can try the new look here: http://www.youtube.com/new 
 
