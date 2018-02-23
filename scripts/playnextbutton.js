@@ -330,12 +330,13 @@ newLook = {
 
 	//selecting thumbnails to work with
 	setLinksArray: function() {
-		var toConvert = document.querySelectorAll("ytd-thumbnail-overlay-toggle-button-renderer"),
+		// var toConvert = document.querySelectorAll("ytd-thumbnail-overlay-toggle-button-renderer"),
+		var toConvert = document.querySelectorAll("#thumbnail"),
 			element;
 		this.linksArray = conFig.DOMtoArray(toConvert);
 		for (var i = this.linksArray.length-1; i > -1; i--) {
 			element = this.linksArray[i];
-			if (element.classList.contains('watch-next-button-created')||element.classList.contains('new-look-addto-watch-next-button')) {
+			if (element.classList.contains('watch-next-button-created')||element.classList.contains('new-look-addto-watch-next-button') || element.classList.contains('ytd-moving-thumbnail-renderer')){
 				this.linksArray.splice(i, 1);
 			}
 		}
@@ -347,7 +348,9 @@ newLook = {
  			parentDiv = element.parentNode,
 			watchNextButton;
 
-		tempVideoId = element.parentNode.parentNode.getAttribute('href').slice(9,20);
+		// tempVideoId = element.parentNode.parentNode.getAttribute('href').slice(9,20);
+		// console.log(element);
+		tempVideoId = element.getAttribute('href').slice(9,20);
 		watchNextButton = newLook.createButtonTemplate(tempVideoId);
 		parentDiv.appendChild(watchNextButton);
 
@@ -392,16 +395,19 @@ newLook = {
 	},
 
 	makeButtonClickable: function(element){
- 		var tempVideoId = element.getAttribute('data-video-ids');
+ 		//var tempVideoId = element.getAttribute('data-video-ids');
  		element.addEventListener('click', function(){
- 			newLook.addVideoToPlaylist(tempVideoId, element);
+ 			//newLook.addVideoToPlaylist(tempVideoId, element);
+ 			newLook.addVideoToPlaylist(null, element);
  			event.stopPropagation();
  			event.preventDefault();
  		});
  		element.classList.add('watch-next-clickable');
  		element.parentNode.parentNode.addEventListener('mouseleave', function(){
  			if (element.classList.contains('watch-next-added-to-playlist')) {
- 				element.parentNode.parentNode.parentNode.parentNode.classList.add('watch-next-button-video-in-playlist');
+ 				// element.parentNode.parentNode.parentNode.parentNode.classList.add('watch-next-button-video-in-playlist');
+ 				element.parentNode.parentNode.classList.add('watch-next-button-video-in-playlist');
+
  			}
  			newLook.renew(element, 22);
  		});
@@ -615,17 +621,18 @@ newLook = {
 			element,
 			oldUrl,
 			newUrl;
-		//console.log(list);
 		for (i in list) {
 			element = list[i].parentNode.childNodes[list[i].parentNode.childNodes.length-1];
-			//console.log(element);
 			if (element) {
 				if (element.classList.contains('new-look-addto-watch-next-button')){
-					newUrl = list[i].parentNode.parentNode.getAttribute('href').slice(9,20);
+					// newUrl = list[i].parentNode.parentNode.getAttribute('href').slice(9,20);
+					newUrl = list[i].getAttribute('href').slice(9,20);
 					oldUrl = element.getAttribute('data-video-ids');
 						if (newUrl === oldUrl) {
+							console.log(true);
 							//
 						} else {
+							console.log(false);
 							element.setAttribute('data-video-ids', newUrl);
 						}
 				} else {
