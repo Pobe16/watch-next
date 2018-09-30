@@ -8,7 +8,7 @@ var watchNext = {
 		conFig.startLS();
 		chrome.storage.sync.get(function(data){
 			var tempPlaylist = conFig.convertSyncGet(data);
-			if(!(conFig.noDuplicates && tempPlaylist.includes(storeThat))) {
+			if(!(JSON.parse(localStorage.getItem("watchNextNoDuplicates")) == true && tempPlaylist.includes(storeThat))) {
 				tempPlaylist.push(storeThat);
 				conFig.syncSet(tempPlaylist);
 			}
