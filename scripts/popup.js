@@ -8,6 +8,7 @@ var playlist={
 	videosArray: [],
 	videosArrayButtons: [],
 	checkbox: {},
+	noDuplicates: {},
 	parentDiv: {},
 	tempPlaylistInfo: [],
 	library: {},
@@ -37,22 +38,27 @@ var playlist={
 	enableDisable: function(){
 		if (this.checkbox.checked){
 			localStorage.setItem('watchNext', 'true');
-		}else{
+		} else {
 			localStorage.setItem('watchNext', 'false');
 		}
 		conFig.setIcon();
 	},
+	
+	noDuplicatesTriggered: function(){
+		if (this.noDuplicates.checked){
+			localStorage.setItem('watchNextNoDuplicates', 'true');
+		} else {
+			localStorage.setItem('watchNextNoDuplicates', 'false');
+		}
+	},
 
 	/*
 	proceed to determine the extension status
-	and check/uncheck the checkbox
+	and check/uncheck the checkboxes
 	*/
-	isCheckboxEnabled: function(){
-		if (JSON.parse(localStorage.getItem("watchNext"))){
-			this.checkbox.checked = true;
-		} else {
-			this.checkbox.checked = false;
-		}
+	loadStorage: function(){
+		this.checkbox.checked = JSON.parse(localStorage.getItem("watchNext")) != false;
+		this.noDuplicatesEnabled.checked = JSON.parse(localStorage.getItem("watchNextNoDuplicates")) == true;
 	},
 
 	/*
@@ -661,15 +667,19 @@ document.addEventListener('DOMContentLoaded', function(){
 
 	// filling the variables
 	playlist.checkbox = document.getElementById('watchNextEnabled');
+	playlist.noDuplicates = document.getElementById('noDuplicatesEnabled');
 	playlist.parentDiv = document.getElementById('watchNext');
 	playlist.historyDiv = document.getElementById('history');
 
 	//tick the checkbox if the extension is enabled
-	playlist.isCheckboxEnabled();
+	playlist.loadStorage();
 
 	//changing extension icon according to the checkbox
 	playlist.checkbox.addEventListener('click', function(){
 		playlist.enableDisable();
+	});
+	playlist.noDuplicates.addEventListener('click', function(){
+		playlist.noDuplicatesTriggered();
 	});
 
 	//starting the generate process
@@ -679,7 +689,6 @@ document.addEventListener('DOMContentLoaded', function(){
 			playlist.tempPlaylistArray = conFig.convertSyncGet(data);
 			playlist.getVideos();
 		});
-		
 	});
 });
 
