@@ -8,13 +8,10 @@ var watchNext = {
 		conFig.startLS();
 		chrome.storage.sync.get(function(data){
 			var tempPlaylist = conFig.convertSyncGet(data);
-			//in case of double-, triple-click etc. the item will be added just once
-			// ***NEW*** I am deleting this check, 
-			//because now I will be dealing with multiclicking otherwise
-			//if (!(tempPlaylist[tempPlaylist.length-1]===storeThat)) {
-			tempPlaylist.push(storeThat);
-			conFig.syncSet(tempPlaylist);
-			//}	
+			if(!(conFig.noDuplicates && tempPlaylist.includes(storeThat))) {
+				tempPlaylist.push(storeThat);
+				conFig.syncSet(tempPlaylist);
+			}
 		});
 	},
 
