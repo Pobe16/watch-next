@@ -71,7 +71,7 @@ var m_ytplayer = document.getElementById('movie_player'),
 		*/
 		adOrMovie: function(){
 			var movieEnded = 0;
-			console.log(html5VideoPlayer.parentNode.parentNode.classList);
+			//console.log(html5VideoPlayer.parentNode.parentNode.classList);
 			if (html5VideoPlayer.parentNode.parentNode.classList.contains('ended-mode')) {
 				movieEnded = 1;
 			}

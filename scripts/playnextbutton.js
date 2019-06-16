@@ -349,13 +349,15 @@ newLook = {
 			watchNextButton;
 
 		// tempVideoId = element.parentNode.parentNode.getAttribute('href').slice(9,20);
-		// console.log(element);
-		tempVideoId = element.getAttribute('href').slice(9,20);
-		watchNextButton = newLook.createButtonTemplate(tempVideoId);
-		parentDiv.appendChild(watchNextButton);
+		if (element.getAttribute('href') && element.getAttribute('href').length > 0){
+			tempVideoId = element.getAttribute('href').slice(9,20);
+			watchNextButton = newLook.createButtonTemplate(tempVideoId);
+			parentDiv.appendChild(watchNextButton);
 
-		//indicate this thumbnail already have the button created for it:
-		element.classList.add('watch-next-button-created');
+			//indicate this thumbnail already have the button created for it:
+			element.classList.add('watch-next-button-created');
+		}
+
  	},
 
  	createButtonTemplate: function(id){
@@ -629,10 +631,9 @@ newLook = {
 					newUrl = list[i].getAttribute('href').slice(9,20);
 					oldUrl = element.getAttribute('data-video-ids');
 						if (newUrl === oldUrl) {
-							console.log(true);
-							//
+
 						} else {
-							console.log(false);
+							//console.log(false);
 							element.setAttribute('data-video-ids', newUrl);
 						}
 				} else {
