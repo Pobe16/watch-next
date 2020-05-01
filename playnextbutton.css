@@ -52,6 +52,7 @@ ytd-thumbnail:hover .new-look-addto-watch-next-button{
 	transition-property: opacity;
 	transition-timing-function: ease;
 	width: 28px;
+	z-index: 10;
 }
 
 .new-look-addto-watch-next-button:hover{
