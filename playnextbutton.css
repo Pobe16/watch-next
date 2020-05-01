@@ -46,7 +46,7 @@ ytd-thumbnail:hover .new-look-addto-watch-next-button{
 	outline-width: 0px;
 	position: absolute;
 	right: 0px;
-	top: 32px;
+	top: 64px;
 	transition-delay: 0s;
 	transition-duration: 0.3s;
 	transition-property: opacity;
@@ -56,6 +56,39 @@ ytd-thumbnail:hover .new-look-addto-watch-next-button{
 
 .new-look-addto-watch-next-button:hover{
 	opacity: 0.6;
+	border-top-left-radius: 0px;
+	border-bottom-left-radius: 0px;
+}
+
+.new-look-addto-watch-next-button::before{
+	opacity: 0;
+	content: "";
+	width: 0px;
+	right: 28px;
+	overflow: hidden;
+	position: absolute;
+	transition-delay: 0s;
+	transition-duration: 0.3s;
+	transition-property: width;
+	transition-timing-function: ease;
+	background-color: #000;
+	padding: 0 2px 0 8px;
+	font-size: 1.3rem;
+	font-weight: 500;
+	height: 28px;
+	border-top-left-radius: 2px;
+	border-bottom-left-radius: 2px;
+	display: flex;
+	flex-direction: row;
+	align-items: center;
+	white-space: nowrap;
+
+}
+
+.new-look-addto-watch-next-button:hover::before{
+	content: "WATCH NEXT";
+	width: 89px;
+	opacity: 1;
 }
 
 .new-look-addto-watch-next-button yt-icon{

@@ -9,6 +9,9 @@ Have fun making playlists!
 
 Icons by Alexander Moore
 
+Changes in version 1.10.3:
+* fixed buttons position to accomodate new YouTube feature
+
 Changes in version 1.10.2:
 * fixed buttons not showing on new version of youtube
 * fixed buttons not responding on new version of youtube
