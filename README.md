@@ -9,7 +9,7 @@ Have fun making playlists!
 
 Icons by Alexander Moore
 
-Changes in version 1.10.3:
+Changes in version 1.10.4:
 * fixed buttons position to accomodate new YouTube feature
 
 Changes in version 1.10.2:
