@@ -17,6 +17,7 @@ html {
 
 body {
 	min-width: 45rem;
+	min-height: 10rem;
 	margin: 0;
 	overflow-x: hidden;
 	font-family: arial,sans-serif;
