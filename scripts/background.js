@@ -141,6 +141,8 @@ chrome.runtime.onMessage.addListener(
 				) {
 					conFig.syncSet(response.data().playlistItems);
 					sendResponse(response.data().playlistItems)
+				} else {
+					sendResponse([])
 				}
 			})
 		}

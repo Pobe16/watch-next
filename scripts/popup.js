@@ -700,10 +700,8 @@ document.addEventListener('DOMContentLoaded', function(){
 				playlist.getVideos();
 			} else {
 				chrome.runtime.sendMessage({whatToDo: 'loadVideosFromFirebaseToLocalStorage'}, (response) => {
-					if (response.length > 0){
-						playlist.tempPlaylistArray = response;
-						playlist.getVideos();
-					}
+					playlist.tempPlaylistArray = response;
+					playlist.getVideos();
 				});
 			}
 		});
