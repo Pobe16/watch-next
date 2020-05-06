@@ -1,0 +1,90 @@
+html {
+	font-size: 12px;
+	
+}
+
+@media all and (min-device-height: 1000px){
+	html{
+		font-size: 14px;
+	}
+}
+
+@media all and (min-device-height: 1300px) {
+	html {
+		font-size: 16px;
+	}
+}
+
+body{
+	margin: 2rem;
+	background-color: #d4e3ff;
+}
+
+#welcomeMessage{
+	font-size: 3rem;
+	width: 40rem;
+	margin: 0 auto;
+	padding: 2rem 0;
+	border-radius: 1rem;
+	text-align: center;
+	background: #d4e3ff;
+	box-shadow: 5px 5px 10px #b4c1d9, 
+				-5px -5px 10px #f4ffff;
+}
+
+#user-not-logged-in{
+	width: 40rem;
+	margin: 2rem auto 2rem auto;
+	padding: 2rem 0;
+	border-radius: 1rem;
+	text-align: center;
+	background: #d4e3ff;
+	box-shadow: 5px 5px 10px #b4c1d9, 
+				-5px -5px 10px #f4ffff;
+}
+
+#login-info-copy{
+	width: 30rem;
+    margin: 0 auto 1rem auto;
+    font-size: 1.5rem;
+}
+
+#user-is-logged-in{
+	display: none;
+	width: 40rem;
+	margin: 2rem auto 2rem auto;
+	padding: 2rem 0 0 0;
+	border-radius: 1rem;
+	text-align: center;
+	background: #d4e3ff;
+	box-shadow: 5px 5px 10px #b4c1d9, 
+				-5px -5px 10px #f4ffff;
+}
+
+#login-confirmation{
+	margin: 0;
+	font-size: 2.5rem;
+}
+
+#log-out-button{
+	display: inline-block;
+	font-size: 2rem;
+	padding: 1rem 2rem;
+	border-radius: 1rem;
+	background: linear-gradient(145deg, #e3f3ff, #bfcce6);
+	box-shadow: 5px 5px 10px #b4c1d9, 
+				-5px -5px 10px #f4ffff;
+	cursor: pointer;
+}
+
+#log-out-button:hover{
+	background: #d4e3ff;
+	box-shadow: 5px 5px 10px #b4c1d9, 
+				-5px -5px 10px #f4ffff;
+}
+
+#log-out-button:active{
+	background: linear-gradient(145deg, #bfcce6, #e3f3ff);
+	box-shadow: 5px 5px 10px #b4c1d9, 
+				-5px -5px 10px #f4ffff;
+}

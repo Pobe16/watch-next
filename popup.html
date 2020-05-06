@@ -1,26 +1,29 @@
 <!doctype html>
 <html>
-	<head>
-		<title>Watch Next Extension's Popup</title>
-		<link rel="stylesheet" href="popup.css" />
-		<meta charset="utf-8" />
-		<script src="scripts/config.js"></script>
-		<script src="scripts/popup.js"></script>
-	</head>
-	<body>
-		<div class="playlistControl">
-			<div class="autoplay">
-					<label class="switch">
-						<input type="checkbox" id="watchNextEnabled" />
-						Autoplay
-					</label>
-			</div>
-			<div class="deleteall" id="deleteall">
+<head>
+	<title>Watch Next Extension's Popup</title>
+	<link rel="stylesheet" href="popup.css" />
+	<meta charset="utf-8" />
+	<script src="scripts/credentials.js"></script>
+	<script src="scripts/config.js"></script>
+	<script src="scripts/popup.js"></script>
+</head>
+<body>
+	<div class="playlistControl">
+		<input type="checkbox" id="watchNextEnabled" />
+		<label for="watchNextEnabled" class="autoplay switch">
+			Autoplay
+		</label>
+		<div class="deleteall" id="deleteall">
 
-			</div>
 		</div>
-		<div id="history" class="history"></div>
-		<div id="watchNext" class="watchNext clearfix"></div>
-		<div class="playlistDuration" id="duration"></div>
-	</body>
+		<div class="options">
+			<button id="optionsButton">⚙</button>
+		</div>
+		
+	</div>
+	<div id="history" class="history"></div>
+	<div id="watchNext" class="watchNext clearfix"></div>
+	<div class="playlistDuration" id="duration"></div>
+</body>
 </html>

@@ -67,7 +67,7 @@ var playlist={
 
 	//communicate with YouTube API to download report on video id
 	getDataFromYoutube: function(){
-		var request = 'https://www.googleapis.com/youtube/v3/videos?id=' + this.videoIds() + '&key='+conFig.youTubeApiKey+
+		var request = 'https://www.googleapis.com/youtube/v3/videos?id=' + this.videoIds() + '&key='+WatchNextCredentials.youTubeApiKey+
 		'&fields=items(id,snippet(title,channelTitle),contentDetails(duration),statistics(viewCount))&part=snippet,contentDetails,statistics';
 		var oReq = new XMLHttpRequest();
 		oReq.open('get', request, true);
@@ -226,7 +226,7 @@ var playlist={
 				videoDetails.author = this.library[videoDetails.id].author;
 				videoDetails.title = this.library[videoDetails.id].title;
 				videoDetails.views = this.convertViews(this.library[videoDetails.id].views);
-				videoDetails.thumbnail = 'https://i.ytimg.com/vi/'+videoDetails.id+'/default.jpg';
+				videoDetails.thumbnail = 'https://i.ytimg.com/vi/'+videoDetails.id+'/mqdefault.jpg';
 				this.newNode(i, videoDetails);
 			} else {
 				//if the id is not in the library (doesn't exist / is deleted from youtube) proceed to create a list of dead videos
@@ -259,16 +259,15 @@ var playlist={
 		
 		var toConstruct = {
 				playlistItem: 'div',
-				thumbnailContainer: 'div',
+				dragdrophandle: 'div',
+				thumbnailContainer: 'img',
 				duration: 'span',
 				infoContainer: 'div',
 				title: 'span',
 				author: 'span',
 				views: 'span',
 				controls: 'div',
-				watchNow: 'img',
-				delet: 'img',
-				clearfix:'div'
+				delet: 'img'
 			},
 			//c will be a DOM playground
 			c = {},
@@ -280,10 +279,7 @@ var playlist={
 		}
 		
 		//setting attributes
-		c.watchNow.id = 'watch' + i;
-		c.watchNow.src = chrome.extension.getURL('icons/icon32.png');
-		c.watchNow.title = 'Watch Now';
-		c.watchNow.alt = 'Watch Now';
+		c.dragdrophandle.innerHTML = "<span>⋮</span>"
 		c.delet.id = 'delet' + i;
 		c.delet.src = chrome.extension.getURL('icons/icon_delete_32.png');
 		c.delet.title = 'Delete';
@@ -292,22 +288,24 @@ var playlist={
 		c.title.innerHTML = details.title;
 		c.author.innerHTML = 'by <b>' + details.author + '</b>';
 		c.views.innerHTML = details.views + ' views';
-		c.thumbnailContainer.setAttribute('style', 'background: url(' + details.thumbnail + ') 0px -11px;');
+		c.thumbnailContainer.src = details.thumbnail;
+		c.thumbnailContainer.id = 'watch' + i;
+		c.thumbnailContainer.title = 'Watch Now';
+		c.thumbnailContainer.classList.add("watchNow");
 		c.playlistItem.setAttribute('data-queuePosition',i);
 		c.playlistItem.setAttribute('draggable', 'true');
 		c.playlistItem.id = details.id;
 
 		// glueing it all together
-		c.controls.appendChild(c.watchNow);
+		c.controls.appendChild(c.duration);
 		c.controls.appendChild(c.delet);
-		c.thumbnailContainer.appendChild(c.duration);
 		c.infoContainer.appendChild(c.title);
 		c.infoContainer.appendChild(c.author);
 		c.infoContainer.appendChild(c.views);
 		c.infoContainer.appendChild(c.controls);
+		c.playlistItem.appendChild(c.dragdrophandle);
 		c.playlistItem.appendChild(c.thumbnailContainer);
 		c.playlistItem.appendChild(c.infoContainer);
-		c.playlistItem.appendChild(c.clearfix);
 		newDiv.appendChild(c.playlistItem);
 
 		this.parentDiv.appendChild(newDiv);
@@ -330,7 +328,7 @@ var playlist={
 	newHistoryNode: function(i) {
 		var toConstruct = {
 				historyItem: 'div',
-				historyThumbnail: 'div',
+				historyThumbnail: 'img',
 				historyControls: 'div',
 				readd: 'img',
 				info: 'img'
@@ -350,7 +348,7 @@ var playlist={
 		c.info.src = chrome.extension.getURL('icons/icon_info.png');
 		c.info.title = this.library[historyId].title;
 		c.info.alt = 'History Info';
-		c.historyThumbnail.setAttribute('style', 'background: url("https://i.ytimg.com/vi/'+historyId+'/default.jpg") 0px -11px;');
+		c.historyThumbnail.src = "https://i.ytimg.com/vi/"+historyId+"/mqdefault.jpg";
 		c.historyItem.id = historyId;
 
 		c.historyControls.appendChild(c.info);
@@ -412,7 +410,9 @@ var playlist={
 				if (what == "Archive") {
 					localStorage.setItem("watchNextArchive", '[]');
 				} else if (what == "Playlist"){
-					conFig.syncClear();
+					chrome.runtime.sendMessage({whatToDo: 'clearPlaylist'},(response) => {
+						console.log(response)
+					});
 				}
 				chrome.storage.local.clear();
 				conFig.setIcon();
@@ -430,15 +430,15 @@ var playlist={
 		element.addEventListener('click', function(){
 			chrome.runtime.sendMessage({whatToDo: 'addVideoToPlaylist', videoId: ind}, function() {
 				tempArchive.splice(index,1);
-				chrome.storage.onChanged.addListener(playlist.refreshBecauseHistory);
+				chrome.storage.onChanged.addListener(playlist.refreshBecauseLocalStorageChange);
 				localStorage.setItem("watchNextArchive", JSON.stringify(tempArchive));
 			});
 		});
 	},
 
-	refreshBecauseHistory: function(){
+	refreshBecauseLocalStorageChange: function(){
+		chrome.storage.onChanged.removeListener(playlist.refreshBecauseLocalStorageChange);
 		window.location.reload(true);
-		chrome.storage.onChanged.removeListener(playlist.refreshBecauseHistory);
 	},
 
 	setDuration: function() {
@@ -488,7 +488,9 @@ var playlist={
 		if (deletedVideosCounter) {
 			var node = document.getElementById('duration'),
 				content = node.innerHTML;
-			conFig.syncSet(this.tempPlaylistArray);
+			chrome.runtime.sendMessage({whatToDo: 'savePLaylist', playlist: this.tempPlaylistArray}, (response) => {
+				console.log(response)
+			});
 			localStorage.setItem("watchNextArchive", JSON.stringify(this.tempArchiveArray));
 			if (deletedVideosCounter == 1) {
 				node.innerHTML = content + '<br /><br />' + deletedVideosCounter + ' video was deleted from your playlist, because it was deleted from YouTube. Sorry about that.';		
@@ -500,7 +502,7 @@ var playlist={
 
 	setViewport: function() {
 		if (JSON.parse(localStorage.getItem("watchNextArchive")).length){
-			document.body.scrollTop = 80;
+			document.documentElement.scrollTop = 130
 		}
 	},
 
@@ -649,11 +651,25 @@ var playlist={
 			back = list.slice(newPosition);
 			newList = front.concat(toMove,back);
 		}
-		conFig.syncSet(newList);
-		window.location.reload();
+		chrome.storage.onChanged.addListener(playlist.refreshBecauseLocalStorageChange);
+		chrome.runtime.sendMessage({whatToDo: 'savePLaylist', playlist: newList}, (response) => {
+			console.log(response)
+		});
 	},
 
 };
+
+var openOptions = function() {
+	var optionsUrl = chrome.extension.getURL('background.html');
+
+	chrome.tabs.query({url: optionsUrl}, function(tabs) {
+		if (tabs.length) {
+			chrome.tabs.update(tabs[0].id, {active: true});
+		} else {
+			chrome.tabs.create({url: optionsUrl});
+		}
+	});
+}
 
 document.addEventListener('DOMContentLoaded', function(){
 	//check local storage status, start if needed.
@@ -668,16 +684,28 @@ document.addEventListener('DOMContentLoaded', function(){
 	playlist.isCheckboxEnabled();
 
 	//changing extension icon according to the checkbox
-	playlist.checkbox.addEventListener('click', function(){
+	playlist.checkbox.addEventListener('change', function(){
 		playlist.enableDisable();
 	});
+
+	var optionsButton = document.getElementById("optionsButton");
+	optionsButton.addEventListener("click", openOptions)
 
 	//starting the generate process
 	chrome.storage.local.get(function(mydata){
 		playlist.library = mydata;
 		chrome.storage.sync.get(function(data){
 			playlist.tempPlaylistArray = conFig.convertSyncGet(data);
-			playlist.getVideos();
+			if (playlist.tempPlaylistArray.length > 0) {
+				playlist.getVideos();
+			} else {
+				chrome.runtime.sendMessage({whatToDo: 'loadVideosFromFirebaseToLocalStorage'}, (response) => {
+					if (response.length > 0){
+						playlist.tempPlaylistArray = response;
+						playlist.getVideos();
+					}
+				});
+			}
 		});
 		
 	});

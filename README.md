@@ -9,6 +9,13 @@ Have fun making playlists!
 
 Icons by Alexander Moore
 
+Changes in version 1.11.0
+- new way of playing videos from popup window - now you have to click on the thumbnail
+- new indicator for playlist editing
+- new look of popup window
+- added ability to create account - it will be useful later in the iOS app which is currently in development
+* fixed the popup window not scrolling past the archive thumbnails
+
 Changes in version 1.10.4:
 * fixed buttons position to accomodate new YouTube feature
 

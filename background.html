@@ -1,0 +1,29 @@
+<!doctype html>
+<html>
+	<head>
+		<title>Watch Next Extension's Sign In Page</title>
+		<link rel="stylesheet" href="https://cdn.firebase.com/libs/firebaseui/3.5.2/firebaseui.css" />
+		<meta charset="utf-8" />
+		<script src="scripts/credentials.js"></script>
+		<script src="https://www.gstatic.com/firebasejs/7.14.2/firebase-app.js"></script>
+		<script src="https://www.gstatic.com/firebasejs/7.14.2/firebase-auth.js"></script>
+		<script src="https://cdn.firebase.com/libs/firebaseui/3.5.2/firebaseui.js"></script>
+		<script src="https://www.gstatic.com/firebasejs/7.14.2/firebase-firestore.js"></script>
+		<script src="scripts/config.js"></script>
+		<script src="scripts/background.js"></script>
+		<link rel="stylesheet" href="signin.css" />
+	</head>
+	<body>
+		<h1 id="welcomeMessage">Watch Next: YouTube<br>account management</h1>
+		<div id="user-not-logged-in">
+			<h3 id="login-info-copy">Create an account to watch your playlist in iOS companion app. Currently in development.</p>
+			<div id="firebaseui-auth-container"></div>
+			<div id="loader">Loading...</div>
+		</div>
+		<div id="user-is-logged-in">
+			<h2 id="login-confirmation">You are logged in!</h2>
+			<p id="log-out-button">LOG OUT</p>
+		</div>
+	</body>
+	<script src="scripts/signin.js"></script>
+</html>

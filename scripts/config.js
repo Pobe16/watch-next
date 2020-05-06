@@ -1,7 +1,11 @@
 'use strict';
+
+// // Initialize Firebase
+// if (firebase.apps.length === 0){
+// 	firebase.initializeApp(WatchNextCredentials.firebaseConfig);
+// }
+
 var conFig = {
-	youTubeApiKey : 'private',
-	
 	contextMenu : {
 		'title': 'Watch Next',
 		'contexts': ['link'],
@@ -82,6 +86,18 @@ var conFig = {
 	syncSet: function(data) {
 		var splicedData = {},
 			howManyHundreds = parseInt(data.length/100);
+		if (window.watchNextUser && window.watchNextUser.isLoggedIn) {
+			var db = firebase.firestore();
+			var uid = window.watchNextUser.uid;
+			db.collection("playlists").doc(uid).set({
+				updateTime: firebase.firestore.Timestamp.fromDate(new Date()),
+				playlistItems: data
+			}).then( (e) => {
+				console.log("I think it is done");
+				console.log(e);
+			})
+		}
+
 		if (data.length%100 === 0){
 			chrome.storage.sync.remove('watchNextPlaylist'+howManyHundreds);
 		}
@@ -98,6 +114,16 @@ var conFig = {
 	},
 
 	syncClear: function(){
+		if (window.watchNextUser && window.watchNextUser.isLoggedIn) {
+			var db = firebase.firestore();
+			var uid = window.watchNextUser.uid;
+			db.collection("playlists").doc(uid).set({
+				updateTime: firebase.firestore.Timestamp.fromDate(new Date()),
+				playlistItems: []
+			}).then( (e) => {
+				console.log("Playlist in firestore cleared.");
+			})
+		}
 		chrome.storage.sync.clear(function(){
 			conFig.setIcon();
 		});
