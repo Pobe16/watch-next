@@ -1,4 +1,9 @@
 'use strict';
+
+// Initialize Firebase
+firebase.initializeApp(WatchNextCredentials.firebaseConfig);
+
+
 (function(){
 
 var watchNext = {
@@ -33,7 +38,7 @@ var watchNext = {
 	checkLink: function(videoUrl){
 		var toSend = conFig.youtubeParser(videoUrl);
 		if (toSend) {
-			var request = 'https://www.googleapis.com/youtube/v3/videos?id=' + toSend + '&key=' + conFig.youTubeApiKey + '&fields=items(id,snippet(title))&part=snippet',
+			var request = 'https://www.googleapis.com/youtube/v3/videos?id=' + toSend + '&key=' + WatchNextCredentials.youTubeApiKey + '&fields=items(id,snippet(title))&part=snippet',
 				oReq = new XMLHttpRequest();
 			oReq.open('get', request, true);
 			oReq.send();
@@ -111,6 +116,33 @@ chrome.runtime.onMessage.addListener(
 				conFig.syncSet(tempPlaylist);
 				sendResponse({videoId: false});
 			});
+		}
+
+		if (request.whatToDo === "clearPlaylist") {
+			conFig.syncClear();
+			sendResponse({ playlist: [] });
+		}
+
+		if (request.whatToDo === "savePLaylist") {
+			conFig.syncSet(request.playlist);
+			sendResponse({
+				saving_started: true
+			});
+		}
+
+		if (request.whatToDo === "loadVideosFromFirebaseToLocalStorage") {
+			var db = firebase.firestore();
+			var uid = window.watchNextUser.uid;
+			db.collection("playlists").doc(uid).get().then( (response) => {
+				if (
+					response.data() && 
+					response.data().playlistItems &&
+					response.data().playlistItems.length > 0
+				) {
+					conFig.syncSet(response.data().playlistItems);
+					sendResponse(response.data().playlistItems)
+				}
+			})
 		}
 		return true;
 });
