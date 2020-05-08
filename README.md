@@ -9,6 +9,12 @@ Have fun making playlists!
 
 Icons by Alexander Moore
 
+Changes in version 1.11.2
+* hopefully fixed the missing context menu option
+
+Changes in version 1.11.1
+* fixed missing styles for account page
+
 Changes in version 1.11.0
 - new way of playing videos from popup window - now you have to click on the thumbnail
 - new indicator for playlist editing
