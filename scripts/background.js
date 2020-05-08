@@ -131,20 +131,25 @@ chrome.runtime.onMessage.addListener(
 		}
 
 		if (request.whatToDo === "loadVideosFromFirebaseToLocalStorage") {
-			var db = firebase.firestore();
-			var uid = window.watchNextUser.uid;
-			db.collection("playlists").doc(uid).get().then( (response) => {
-				if (
-					response.data() && 
-					response.data().playlistItems &&
-					response.data().playlistItems.length > 0
-				) {
-					conFig.syncSet(response.data().playlistItems);
-					sendResponse(response.data().playlistItems)
-				} else {
-					sendResponse([])
-				}
-			})
+			if (window.watchNextUser && window.watchNextUser.uid){
+				var db = firebase.firestore();
+				var uid = window.watchNextUser.uid;
+				db.collection("playlists").doc(uid).get().then( (response) => {
+					if (
+						response.data() && 
+						response.data().playlistItems &&
+						response.data().playlistItems.length > 0
+					) {
+						conFig.syncSet(response.data().playlistItems);
+						sendResponse(response.data().playlistItems)
+					} else {
+						sendResponse([])
+					}
+				})
+			} else {
+				sendResponse([])
+			}
+			
 		}
 		return true;
 });

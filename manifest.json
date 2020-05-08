@@ -4,7 +4,7 @@
 	"name": "Watch Next: YouTube",
 	"short_name": "Watch Next",
 	"description": "Watch Next lets you tell YouTube which video you want to watch after this one.",
-	"version": "1.11.2",
+	"version": "1.11.3",
 
 	"permissions": [
 		"https://youtube.com/",
