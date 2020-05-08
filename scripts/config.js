@@ -15,7 +15,7 @@ var conFig = {
 			'https://*.youtu.be/*',
 			'http://*.youtu.be/*'
 		],
-		'id': 'watchNext',
+		'id': 'watchNext'
 	},
 
 	/*

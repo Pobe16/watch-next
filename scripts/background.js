@@ -149,12 +149,10 @@ chrome.runtime.onMessage.addListener(
 		return true;
 });
 
-chrome.contextMenus.onClicked.addListener(watchNext.contextMenuClick);
+chrome.contextMenus.removeAll();
+chrome.contextMenus.create(conFig.contextMenu);
 
-chrome.runtime.onInstalled.addListener(function() {
-	//context menu config
-	chrome.contextMenus.create(conFig.contextMenu);
-});
+chrome.contextMenus.onClicked.addListener(watchNext.contextMenuClick);
 
 chrome.storage.onChanged.addListener(conFig.setIcon);
 
