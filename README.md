@@ -9,6 +9,9 @@ Have fun making playlists!
 
 Icons by Alexander Moore
 
+Changes in version 1.11.3
+* fixed archive not showing when playlist empty and user not logged in.
+
 Changes in version 1.11.2
 * hopefully fixed the missing context menu option
 
